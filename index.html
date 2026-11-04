@@ -429,19 +429,16 @@ button:disabled { opacity: .45; cursor: default; }
   }
 
   /* ---------- Bahn ---------- */
-  // Namen so, wie sie die DB-Suche kennt (bahn.de / DB Navigator).
-  const dbName = n => String(n).replace(/^Hannover Bf /, 'Hannover ').replace(/K\.-Wiechert/, 'Karl-Wiechert').replace(/,? (Bahnhof|Bf)$/, '');
-  const localISO = d => new Date(d).toLocaleString('sv-SE', { timeZone: TZ }).replace(' ', 'T');
-  const dbWeb = (from, to, when) =>
-    `https://www.bahn.de/buchung/fahrplan/suche#sts=true&so=${encodeURIComponent(dbName(from))}&zo=${encodeURIComponent(dbName(to))}&kl=2&hd=${encodeURIComponent(localISO(when))}&hza=D&ar=false&s=true&d=false&fm=false&bp=false`;
-  // Auf Android gezielt die DB-Navigator-App ansteuern (Paket de.hafas.android.db); ist sie nicht installiert
-  // oder öffnet den Link nicht, fällt Chrome auf die bahn.de-Seite zurück.
-  const isAndroid = /Android/i.test(navigator.userAgent);
-  const dbAttrs = (from, to, when) => {
-    const web = dbWeb(from, to, when);
-    if (!isAndroid) return `href="${web}" target="_blank" rel="noopener"`;
-    const intent = 'intent://' + web.slice('https://'.length) + `#Intent;scheme=https;package=de.hafas.android.db;S.browser_fallback_url=${encodeURIComponent(web)};end`;
-    return `href="${intent}"`;
+  // bahn.de nimmt Haltestellen nur mit eigener Kennung als Link an (sonst bleibt die Suche leer). Deshalb
+  // öffnet ein Tipp einfach die DB-Navigator-App; ohne App geht es zum Store bzw. zu bahn.de.
+  const DB_PKG = 'de.hafas.android.db';
+  const dbAttrs = () => {
+    if (/Android/i.test(navigator.userAgent)) {
+      const store = encodeURIComponent('https://play.google.com/store/apps/details?id=' + DB_PKG);
+      return `href="intent:#Intent;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;package=${DB_PKG};S.browser_fallback_url=${store};end"`;
+    }
+    if (/iPhone|iPad|Macintosh/i.test(navigator.userAgent) && navigator.maxTouchPoints > 1) return 'href="https://apps.apple.com/de/app/db-navigator/id343555245" target="_blank" rel="noopener"';
+    return 'href="https://www.bahn.de/" target="_blank" rel="noopener"';
   };
 
   function parseJourney(it) {
@@ -593,7 +590,7 @@ button:disabled { opacity: .45; cursor: default; }
     else if (hero.gap != null && hero.gap < 3) notes += note('warn', 'alert', `Knapper Umstieg in ${esc(hero.via)}: nur ${hero.gap} min`);
     hero.notes.forEach(m => { notes += note('', 'info', esc(m)); });
     $('hero').innerHTML = `
-      <a class="tap" ${dbAttrs(hero.fromRaw, hero.toRaw, hero.planned)} aria-label="In DB Navigator öffnen">
+      <a class="tap" ${dbAttrs()} aria-label="DB Navigator öffnen">
         <div class="label">${ic('train')}<span>${esc(hero.fromName)} → ${esc(hero.toName)}</span><span class="grow"></span>${hero.iris ? '<span class="live">Live</span>' : ''}<span class="dbchip">DB${ic('external')}</span></div>
         <div class="row">
           <div class="big">${fmt(hero.dep)}${hero.delay >= 1 && !hero.cancelled ? `<em class="old">${fmt(hero.planned)}</em>` : ''}</div>
@@ -608,7 +605,7 @@ button:disabled { opacity: .45; cursor: default; }
       </a>${notes}`;
     $('next').hidden = !rest.length;
     $('next').querySelector('.list').innerHTML = rest.map(t => `
-      <a class="item ${cls(t)}" ${dbAttrs(t.fromRaw, t.toRaw, t.planned)}>
+      <a class="item ${cls(t)}" ${dbAttrs()}>
         <div class="t">${fmt(t.dep)}</div>
         <div class="m"><b>${esc(t.lines)}</b><br>Gl. ${esc(t.platform)} · an ${fmt(t.arr)}</div>
         <span class="pill ${cls(t)}">${statusText(t)}</span>
@@ -661,7 +658,7 @@ button:disabled { opacity: .45; cursor: default; }
     if (planned && planned !== best) extra = note('warn', 'alert', `Planmäßig ${fmt(planned.planned)} ${esc(planned.lines)} – ${planned.cancelled ? 'fällt aus' : `kommt zu spät (+${planned.delay} min)`}. Nimm ${fmt(best.dep)}.`);
     el.hidden = false;
     el.innerHTML = `
-      <a class="tap" ${dbAttrs(best.fromRaw, best.toRaw, best.planned)}>
+      <a class="tap" ${dbAttrs()}>
         <div class="label">${ic('flag')}<span>${dir === 'out' ? 'Spätestens' : 'Zuhause'} ${esc(want)} Uhr · ${day}</span><span class="grow"></span><span class="dbchip">DB${ic('external')}</span></div>
         <div class="row"><div class="big">${fmt(best.dep)}</div><span class="pill ${k}">${buf} min Puffer</span></div>
         <div class="line"><b>${esc(best.lines)}</b> · Gl. ${esc(best.platform)} · Ankunft ${fmt(best.arr)}</div>
