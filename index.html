@@ -189,6 +189,40 @@ dialog::backdrop { background: rgba(0,0,0,.55); }
 .days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
 .days button { min-height: 44px; border-radius: 12px; background: var(--glass); border: 1px solid var(--glass-border); font-weight: 700; font-size: 14px; }
 .days button[aria-pressed="true"] { background: #fff; color: #17407f; }
+
+button:disabled { opacity: .45; cursor: default; }
+.row2 { display: flex; gap: 8px; }
+.row2 .btn { flex: 1; }
+.btn.primary { background: #fff; color: #17407f; border-color: transparent; }
+.pk { display: flex; flex-direction: column; gap: 6px; }
+.dots { display: flex; gap: 6px; }
+.dots span { width: 28px; height: 5px; border-radius: 99px; background: var(--glass-strong); }
+.dots span.on { background: #fff; }
+.wizard .cur { font-weight: 700; font-size: 16px; min-height: 22px; word-break: break-word; }
+.wizard .slot { display: flex; flex-direction: column; gap: 6px; }
+
+/* Tablet & Desktop: beide Ansichten nebeneinander, mehr Platz */
+@media (min-width: 760px) {
+  body { padding: max(24px, env(safe-area-inset-top)) max(32px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(32px, env(safe-area-inset-left)); }
+  main { max-width: 1120px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-content: start; align-items: start; min-height: calc(100dvh - 44px); }
+  main > .hd, main > #alert, main > #ptr, main > footer, main > .cmp { grid-column: 1 / -1; }
+  main > #dirSeg { grid-column: 1; grid-row: 2; }
+  main > .ctl { grid-column: 2; grid-row: 2; justify-content: flex-end; }
+  .clock { font-size: clamp(64px, 7vw, 92px); }
+  .big { font-size: 72px; }
+  .car .big { font-size: 64px; }
+  .cmp { max-width: 560px; justify-self: center; width: 100%; }
+  .card { padding: 18px 20px; }
+  dialog { width: min(100vw - 32px, 640px); }
+}
+/* Querformat auf dem Handy: weniger Höhe verbrauchen */
+@media (max-height: 520px) and (max-width: 759px) {
+  .clock { font-size: 44px; }
+  .big { font-size: 48px; }
+  .hd { padding-top: 0; }
+}
+/* kleine Handys */
+@media (max-width: 359px) { .big { font-size: 52px; } .clock { font-size: 48px; } .cmp .c { padding: 6px 8px; font-size: 13px; } }
 </style>
 </head>
 <body>
@@ -222,6 +256,10 @@ dialog::backdrop { background: rgba(0,0,0,.55); }
   <footer id="stand">Stand: –</footer>
   <div class="cmp" id="cmp" hidden></div>
 </main>
+
+<dialog id="wiz" class="wizard">
+  <div class="sheet" id="wizSheet"></div>
+</dialog>
 
 <dialog id="dlg">
   <div class="sheet" id="sheet"></div>
@@ -276,11 +314,8 @@ dialog::backdrop { background: rgba(0,0,0,.55); }
 
   /* ---------- Einstellungen ---------- */
   const defaultCfg = () => ({
-    home: { label: 'Vöhrum (Standard)', lat: 52.33556, lon: 10.168516 },
-    work: { label: 'Karl-Wiechert-Allee, Hannover (Standard)', lat: 52.374416, lon: 9.808116 },
-    homeStation: { name: 'Vöhrum Bahnhof', id: 'de-DELFI_de:03157:8146' },
-    workStation: { name: 'Hannover Bf K.-Wiechert-Allee', id: 'de-DELFI_de:03241:3017' },
-    arrive: { out: '08:00', back: '' },
+    home: null, work: null, homeStation: null, workStation: null,      // werden bei der ersten Einrichtung abgefragt
+    arrive: { out: '', back: '' },
     workdays: [1, 2, 3, 4, 5],
     remind: { dep: false, depMin: 10, arr: false, arrMin: 5 },
     fuel: { type: 'e5', rad: 5, key: '', gps: true },
@@ -295,9 +330,14 @@ dialog::backdrop { background: rgba(0,0,0,.55); }
       if (s.arriveBy !== undefined && !s.arrive) s.arrive = { out: s.arriveBy, back: '' };
       if (s.remindOn !== undefined && !s.remind) s.remind = { dep: !!s.remindOn, depMin: s.remindMin || 10, arr: false, arrMin: 5 };
       ['routes', 'route', 'useAlt', 'arriveBy', 'remindOn', 'remindMin'].forEach(k => delete s[k]);
-      return { ...d, ...s, arrive: { ...d.arrive, ...s.arrive }, remind: { ...d.remind, ...s.remind }, fuel: { ...d.fuel, ...s.fuel } };
+      const out = { ...d, ...s, arrive: { ...d.arrive, ...s.arrive }, remind: { ...d.remind, ...s.remind }, fuel: { ...d.fuel, ...s.fuel } };
+      for (const [k, sk] of [['home', 'homeStation'], ['work', 'workStation']]) {   // frühere Voreinstellungen verwerfen
+        if (out[k] && /\(Standard\)/.test(out[k].label)) { out[k] = null; out[sk] = null; }
+      }
+      return out;
     } catch { return d; }
   }
+  const configured = () => !!(cfg.home && cfg.work);
   const saveCfg = () => { try { localStorage.setItem('pendelCfg', JSON.stringify(cfg)); } catch {} };
 
   const $ = id => document.getElementById(id);
@@ -339,19 +379,28 @@ dialog::backdrop { background: rgba(0,0,0,.55); }
   }
 
   /* ---------- Bahnhöfe (immer Bahnhof → Bahnhof) ---------- */
-  const nearest = {};
-  async function stationOf(s, p) {
-    if (s && s.id) return s;
-    const k = `${p.lat},${p.lon}`;
-    if (nearest[k]) return nearest[k];
-    try { const c = JSON.parse(localStorage.getItem('pendelNearest:' + k) || 'null'); if (c) return (nearest[k] = c); } catch {}
-    const r = await getJSON(`${TRANSIT}/api/v1/reverse-geocode?place=${k}&type=STOP&language=de`, 1);
-    const isRail = x => (x.modes || []).some(m => /RAIL|METRO|SUBURBAN|SUBWAY|TRAM/.test(m));
-    const hit = r.find(isRail) || r[0];
-    if (!hit) throw new Error('Kein Bahnhof in der Nähe von „' + p.label + '“ gefunden');
-    const v = { name: hit.name, id: hit.id };
-    try { localStorage.setItem('pendelNearest:' + k, JSON.stringify(v)); } catch {}
-    return (nearest[k] = v);
+  // Ohne gewählten Bahnhof wird er aus einer echten Zug-/S-Bahn-Verbindung zwischen beiden Orten bestimmt.
+  const detected = {};
+  async function detect(fromPlace, toPlace) {
+    const k = `${fromPlace}>${toPlace}`;
+    if (detected[k]) return detected[k];
+    try { const c = JSON.parse(localStorage.getItem('pendelDetect:' + k) || 'null'); if (c) return (detected[k] = c); } catch {}
+    const r = await getJSON(`${TRANSIT}/api/v1/plan?fromPlace=${encodeURIComponent(fromPlace)}&toPlace=${encodeURIComponent(toPlace)}&transitModes=RAIL,SUBURBAN&maxPreTransitTime=3600&maxPostTransitTime=3600&numItineraries=1&language=de`, 2, 25000);
+    const it = (r.itineraries || [])[0];
+    const rides = it ? it.legs.filter(l => l.mode !== 'WALK') : [];
+    if (!rides.length) throw new Error('Kein Bahnhof mit Zug oder S-Bahn in der Nähe gefunden – bitte einen Bahnhof wählen');
+    const f = rides[0].from, l = rides[rides.length - 1].to;
+    const v = { home: { name: f.name, id: f.stopId }, work: { name: l.name, id: l.stopId } };
+    try { localStorage.setItem('pendelDetect:' + k, JSON.stringify(v)); } catch {}
+    return (detected[k] = v);
+  }
+  async function resolveStations(c) {
+    let h = c.homeStation, w = c.workStation;
+    if (!h || !w) {
+      const d = await detect(h ? h.id : `${c.home.lat},${c.home.lon}`, w ? w.id : `${c.work.lat},${c.work.lon}`);
+      h = h || d.home; w = w || d.work;
+    }
+    return { home: h, work: w, auto: { home: !c.homeStation, work: !c.workStation } };
   }
 
   /* ---------- Bahn ---------- */
@@ -469,7 +518,8 @@ dialog::backdrop { background: rgba(0,0,0,.55); }
   // Der Routenplaner rechnet von Bahnhof zu Bahnhof. Erst nur Zug/S-Bahn, sonst auch Bus/Stadtbahn.
   async function planJourneys(extra = '', n = 6) {
     const e = ends();
-    const [sa, sb] = await Promise.all([stationOf(e.sa, e.a), stationOf(e.sb, e.b)]);
+    const st = await resolveStations(cfg);
+    const sa = dir === 'out' ? st.home : st.work, sb = dir === 'out' ? st.work : st.home;
     const tail = `maxPreTransitTime=1800&maxPostTransitTime=1800&numItineraries=${n}&language=de${extra}`;
     for (const [modes, railOnly] of [['&transitModes=RAIL,SUBURBAN', true], ['', false]]) {
       const r = await getJSON(`${TRANSIT}/api/v1/plan?fromPlace=${encodeURIComponent(sa.id)}&toPlace=${encodeURIComponent(sb.id)}${modes}&${tail}`, 2, 20000);
@@ -613,13 +663,14 @@ dialog::backdrop { background: rgba(0,0,0,.55); }
   /* ---------- Spritpreise (Tankerkönig / MTS-K) ---------- */
   let pos = null;
   function position() {
-    return new Promise(res => {
-      const home = { lat: cfg.home.lat, lon: cfg.home.lon, gps: false };
-      if (!cfg.fuel.gps || !navigator.geolocation) return res(home);
+    return new Promise((res, rej) => {
+      const home = cfg.home ? { lat: cfg.home.lat, lon: cfg.home.lon, gps: false } : null;
+      const fallback = () => home ? res(home) : rej(new Error('Standort nicht verfügbar – Zuhause festlegen oder Standort erlauben'));
+      if (!cfg.fuel.gps || !navigator.geolocation) return fallback();
       if (pos && Date.now() - pos.ts < 300000) return res(pos);
       navigator.geolocation.getCurrentPosition(
         p => { pos = { lat: p.coords.latitude, lon: p.coords.longitude, gps: true, ts: Date.now() }; res(pos); },
-        () => res(home), { timeout: 8000, maximumAge: 300000 });
+        fallback, { timeout: 8000, maximumAge: 300000 });
     });
   }
   const fuelCache = {};
@@ -699,6 +750,7 @@ dialog::backdrop { background: rgba(0,0,0,.55); }
   }
   async function loadWx() {
     const h = cfg.home;
+    if (!h) return;
     const r = await getJSON(`https://api.open-meteo.com/v1/forecast?latitude=${h.lat}&longitude=${h.lon}&current=temperature_2m,weather_code&timezone=Europe%2FBerlin`);
     wx = r.current;
   }
@@ -757,6 +809,7 @@ dialog::backdrop { background: rgba(0,0,0,.55); }
       $('stand').textContent = 'Offline' + (trainsOk ? ` · Bahn-Daten von ${fmt(trainsOk)}` : '');
       return;
     }
+    if (!configured()) return;
     if (!force && inflight && Date.now() - inflight < 25000) return;   // laufende Abfrage nicht überholen
     const my = ++seq;
     inflight = Date.now();
@@ -800,13 +853,14 @@ dialog::backdrop { background: rgba(0,0,0,.55); }
     try { last.dl = trainsErr ? last.dl : await loadDeadline(); } catch { last.dl = null; }
     if (my !== seq) return;
     renderDeadline(last.dl);
-    if (mode === 'car') await refreshFuel();
+    if (carVisible()) await refreshFuel();
   }
   async function refreshFuel() {
     try { renderFuel(await loadFuel()); } catch (e) { renderFuel(null, `Spritpreise nicht erreichbar: ${errText(e)}`); }
   }
 
   function reset() {
+    if (!configured()) { openWizard(); return; }
     last.trains = last.car = last.dl = null;
     $('hero').innerHTML = '<div class="skel">Lade Verbindungen …</div>';
     $('next').hidden = true; $('dl').hidden = true; $('alert').hidden = true; $('cmp').hidden = true;
@@ -821,13 +875,24 @@ dialog::backdrop { background: rgba(0,0,0,.55); }
     $('modeSeg').querySelectorAll('button').forEach(b => b.onclick = () => setMode(b.dataset.m));
     $('dirSeg').querySelectorAll('button').forEach(b => b.onclick = () => setDir(b.dataset.d));
   }
+  const wideMQ = matchMedia('(min-width: 760px)');
+  const carVisible = () => wideMQ.matches || mode === 'car';
+  function showPanes() {
+    const wide = wideMQ.matches;
+    $('paneTrain').hidden = !(wide || mode === 'train');
+    $('paneCar').hidden = !carVisible();
+    $('modeSeg').hidden = wide;
+  }
   function setMode(m) {
     mode = m;
     try { localStorage.setItem('pendelMode', m); } catch {}
-    $('paneTrain').hidden = m !== 'train';
-    $('paneCar').hidden = m !== 'car';
+    showPanes();
     renderSegs();
-    if (m === 'car') { renderFuel(cfg.fuel.key ? null : { nokey: true }); if (cfg.fuel.key) $('fuel').innerHTML = `<div class="label">${ic('fuel')}Sprit</div><div class="skel">Lade Spritpreise …</div>`; refreshFuel(); }
+    if (carVisible() && configured()) {
+      renderFuel(cfg.fuel.key ? null : { nokey: true });
+      if (cfg.fuel.key) $('fuel').innerHTML = `<div class="label">${ic('fuel')}Sprit</div><div class="skel">Lade Spritpreise …</div>`;
+      refreshFuel();
+    }
   }
   function setDir(d) { dir = d; renderSegs(); reset(); }
   $('refresh').onclick = () => refresh(true);
@@ -841,7 +906,7 @@ dialog::backdrop { background: rgba(0,0,0,.55); }
     { key: 'work', title: 'Arbeit', icon: 'building', ph: 'Arbeitsort oder Adresse eingeben …', kind: 'addr' },
     { key: 'workStation', title: 'Bahnhof bei Arbeit', icon: 'train', ph: 'Haltestelle suchen, z. B. Wiechert', kind: 'stop' },
   ];
-  const curText = (f, v) => f.kind === 'stop' ? (v && v.name ? v.name : 'Automatisch (nächster Bahnhof)') : v.label;
+  const curText = (f, v) => f.kind === 'stop' ? (v && v.name ? v.name : 'Automatisch (nächster Bahnhof)') : (v ? v.label : 'Nicht festgelegt');
   const placeLabel = p => {
     const street = p.street ? p.street + (p.housenumber ? ' ' + p.housenumber : '') : '';
     const head = p.name && p.name !== p.street ? p.name : '';
@@ -849,7 +914,7 @@ dialog::backdrop { background: rgba(0,0,0,.55); }
     return [head, street, city].filter(Boolean).join(', ');
   };
   async function suggest(f, text) {
-    const b = cfg.home;
+    const b = cfg.home || { lat: 51.2, lon: 10.4 };      // nur zur Gewichtung der Vorschläge
     if (f.kind === 'stop') {
       const r = await getJSON(`${TRANSIT}/api/v1/geocode?text=${encodeURIComponent(text)}&type=STOP&language=de&place=${b.lat},${b.lon}`);
       const seen = new Set();
@@ -863,6 +928,52 @@ dialog::backdrop { background: rgba(0,0,0,.55); }
     return r.features
       .map(x => ({ label: placeLabel(x.properties), val: { label: placeLabel(x.properties), lat: +x.geometry.coordinates[1].toFixed(5), lon: +x.geometry.coordinates[0].toFixed(5) } }))
       .filter(x => x.label && !seen.has(x.label) && seen.add(x.label));
+  }
+  // Eingabefeld mit Vorschlägen (Adresse oder Haltestelle), optional mit „Standort verwenden“.
+  function picker(host, f, onPick, withLoc) {
+    host.className = 'pk';
+    host.innerHTML = `<input type="search" placeholder="${f.ph}" enterkeyhint="search" autocomplete="off"><div class="res"></div>${withLoc ? `<button type="button" class="btn loc">${ic('locate')}Standort verwenden</button>` : ''}`;
+    const input = host.querySelector('input'), res = host.querySelector('.res');
+    const pick = v => { input.value = ''; res.innerHTML = `<div class="hint">${ic('check')} Gespeichert</div>`; onPick(v); };
+    let timer, n = 0;
+    input.oninput = () => {
+      clearTimeout(timer);
+      const t = input.value.trim();
+      if (t.length < 3) { res.innerHTML = ''; return; }
+      timer = setTimeout(async () => {
+        const my = ++n;
+        try {
+          const list = await suggest(f, t);
+          if (my !== n) return;
+          res.innerHTML = list.length ? '' : '<div class="hint">Nichts gefunden.</div>';
+          list.forEach(it => {
+            const b = document.createElement('button'); b.type = 'button'; b.textContent = it.label;
+            b.onclick = () => pick(it.val);
+            res.appendChild(b);
+          });
+        } catch (e) { if (my === n) res.innerHTML = `<div class="err">${ic('alert')}<span>Suche fehlgeschlagen: ${esc(errText(e))}</span></div>`; }
+      }, 300);
+    };
+    const loc = host.querySelector('.loc');
+    if (loc) loc.onclick = () => {
+      if (!navigator.geolocation) { res.innerHTML = `<div class="err">${ic('alert')}<span>Standort wird vom Browser nicht unterstützt.</span></div>`; return; }
+      res.innerHTML = '<div class="hint">Standort wird ermittelt …</div>';
+      navigator.geolocation.getCurrentPosition(async p => {
+        const lat = +p.coords.latitude.toFixed(5), lon = +p.coords.longitude.toFixed(5);
+        let label = 'Mein Standort';
+        try {
+          const r = await getJSON(`${PHOTON}/reverse?lat=${lat}&lon=${lon}&lang=de`);
+          label = (r.features[0] && placeLabel(r.features[0].properties)) || label;
+        } catch {}
+        pick({ label, lat, lon });
+      }, err => {
+        res.innerHTML = `<div class="err">${ic('alert')}<span>Standort nicht verfügbar (${err.code === 1 ? 'Zugriff verweigert' : 'keine Position gefunden'}).</span></div>`;
+      }, { timeout: 10000, maximumAge: 60000 });
+    };
+  }
+  async function autoName(f, cur) {
+    if (!configured()) return;
+    try { const st = await resolveStations(cfg); cur.textContent = 'Automatisch: ' + (f.key === 'homeStation' ? st.home.name : st.work.name); } catch {}
   }
   let changed = false;
   const DAYS = [[1, 'Mo'], [2, 'Di'], [3, 'Mi'], [4, 'Do'], [5, 'Fr'], [6, 'Sa'], [0, 'So']];
@@ -879,9 +990,8 @@ dialog::backdrop { background: rgba(0,0,0,.55); }
       <div class="field" data-k="${f.key}">
         <span class="label">${ic(f.icon)}${f.title}</span>
         <div class="cur">${esc(curText(f, cfg[f.key]))}</div>
-        <input type="search" placeholder="${f.ph}" enterkeyhint="search" autocomplete="off">
-        <div class="res"></div>
-        ${f.kind === 'addr' ? `<button type="button" class="btn loc">${ic('locate')}Standort verwenden</button>` : '<button type="button" class="btn auto">Automatisch (nächster Bahnhof)</button>'}
+        <div class="pk"></div>
+        ${f.kind === 'stop' ? '<button type="button" class="btn auto">Automatisch (nächster Bahnhof)</button>' : ''}
       </div>`).join('') + '<div class="hint">Die Bahn wird von Bahnhof zu Bahnhof gerechnet. Ohne Auswahl nimmt die App den nächsten Bahnhof zur Adresse.</div>';
     const times = `
       <div class="field"><span class="label">${ic('flag')}Zur Arbeit: Ankunft bis</span><input type="time" id="arriveOut" value="${esc(cfg.arrive.out)}"></div>
@@ -916,45 +1026,12 @@ dialog::backdrop { background: rgba(0,0,0,.55); }
 
     $('sheet').querySelectorAll('.field[data-k]').forEach(el => {
       const f = FIELDS.find(x => x.key === el.dataset.k);
-      const input = el.querySelector('input'), res = el.querySelector('.res'), cur = el.querySelector('.cur');
-      const set = v => { cfg[f.key] = v; saveCfg(); cur.textContent = curText(f, v); input.value = ''; res.innerHTML = `<div class="hint">${ic('check')} Gespeichert</div>`; changed = true; };
-      let timer, n = 0;
-      input.oninput = () => {
-        clearTimeout(timer);
-        const t = input.value.trim();
-        if (t.length < 3) { res.innerHTML = ''; return; }
-        timer = setTimeout(async () => {
-          const my = ++n;
-          try {
-            const list = await suggest(f, t);
-            if (my !== n) return;
-            res.innerHTML = list.length ? '' : '<div class="hint">Nichts gefunden.</div>';
-            list.forEach(it => {
-              const b = document.createElement('button'); b.type = 'button'; b.textContent = it.label;
-              b.onclick = () => set(it.val);
-              res.appendChild(b);
-            });
-          } catch (e) { if (my === n) res.innerHTML = `<div class="err">${ic('alert')}<span>Suche fehlgeschlagen: ${esc(errText(e))}</span></div>`; }
-        }, 300);
-      };
+      const cur = el.querySelector('.cur');
+      const set = v => { cfg[f.key] = v; saveCfg(); cur.textContent = curText(f, v); changed = true; if (f.kind === 'stop' && !v) autoName(f, cur); };
+      picker(el.querySelector('.pk'), f, set, f.kind === 'addr');
       const auto = el.querySelector('.auto');
       if (auto) auto.onclick = () => set(null);
-      const loc = el.querySelector('.loc');
-      if (loc) loc.onclick = () => {
-        if (!navigator.geolocation) { res.innerHTML = `<div class="err">${ic('alert')}<span>Standort wird vom Browser nicht unterstützt.</span></div>`; return; }
-        res.innerHTML = '<div class="hint">Standort wird ermittelt …</div>';
-        navigator.geolocation.getCurrentPosition(async p => {
-          const lat = +p.coords.latitude.toFixed(5), lon = +p.coords.longitude.toFixed(5);
-          let label = 'Mein Standort';
-          try {
-            const r = await getJSON(`${PHOTON}/reverse?lat=${lat}&lon=${lon}&lang=de`);
-            label = (r.features[0] && placeLabel(r.features[0].properties)) || label;
-          } catch {}
-          set({ label, lat, lon });
-        }, err => {
-          res.innerHTML = `<div class="err">${ic('alert')}<span>Standort nicht verfügbar (${err.code === 1 ? 'Zugriff verweigert' : 'keine Position gefunden'}).</span></div>`;
-        }, { timeout: 10000, maximumAge: 60000 });
-      };
+      if (f.kind === 'stop' && !cfg[f.key]) autoName(f, cur);
     });
     const on = (id, ev, fn) => $(id).addEventListener(ev, fn);
     on('arriveOut', 'change', e => { cfg.arrive.out = e.target.value; saveCfg(); changed = true; });
@@ -981,12 +1058,73 @@ dialog::backdrop { background: rgba(0,0,0,.55); }
       cfg.theme = b.dataset.v; saveCfg(); applyTheme();
       $('themeSeg').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b));
     });
-    $('resetCfg').onclick = () => { cfg = defaultCfg(); saveCfg(); applyTheme(); changed = true; openSettings(open); };
+    $('resetCfg').onclick = () => { cfg = defaultCfg(); saveCfg(); applyTheme(); changed = false; $('dlg').close(); openWizard(); };
     $('closeDlg').onclick = () => { $('dlg').close(); applyChanges(); };
     changed = false;
     if (!$('dlg').open) $('dlg').showModal();
   }
-  const applyChanges = () => { if (changed) { changed = false; reset(); if (mode === 'car') setMode('car'); } };
+  /* ---------- Schnelle Ersteinrichtung ---------- */
+  const draft = {};
+  let wizStep = 0;
+  function openWizard() {
+    if ($('dlg').open) $('dlg').close();
+    Object.assign(draft, { home: cfg.home, work: cfg.work, homeStation: cfg.homeStation, workStation: cfg.workStation, arriveOut: cfg.arrive.out });
+    wizStep = 0;
+    renderWizard();
+    if (!$('wiz').open) $('wiz').showModal();
+  }
+  async function renderWizard() {
+    const el = $('wizSheet');
+    const dots = `<div class="dots">${[0, 1, 2].map(i => `<span class="${i <= wizStep ? 'on' : ''}"></span>`).join('')}</div>`;
+    if (wizStep === 0 || wizStep === 1) {
+      const home = wizStep === 0, key = home ? 'home' : 'work', f = FIELDS[home ? 0 : 2];
+      el.innerHTML = `${dots}
+        <h2>${ic(home ? 'home' : 'building')}${home ? 'Wo wohnst du?' : 'Wo arbeitest du?'}</h2>
+        <div class="hint">${home ? 'Kurz einrichten, das dauert eine halbe Minute. Alles lässt sich später in den Einstellungen ändern.' : 'Adresse oder Name deines Arbeitsorts.'}</div>
+        <div class="cur" id="wCur">${draft[key] ? esc(draft[key].label) : ''}</div>
+        <div id="wPick"></div>
+        <div class="row2">${home ? '' : '<button class="btn" id="wBack">Zurück</button>'}<button class="btn primary" id="wNext" ${draft[key] ? '' : 'disabled'}>Weiter</button></div>`;
+      picker($('wPick'), f, v => { draft[key] = v; $('wCur').textContent = v.label; $('wNext').disabled = false; }, home);
+      $('wNext').onclick = () => { wizStep++; renderWizard(); };
+      if (!home) $('wBack').onclick = () => { wizStep--; renderWizard(); };
+      return;
+    }
+    el.innerHTML = `${dots}
+      <h2>${ic('train')}Deine Bahnhöfe</h2>
+      <div class="hint">Den nächsten Bahnhof zu beiden Adressen suche ich selbst. Du kannst ihn ändern.</div>
+      <div class="field" id="wsHome"><span class="label">${ic('home')}Bei Zuhause</span><div class="cur">Suche …</div><div class="slot"></div></div>
+      <div class="field" id="wsWork"><span class="label">${ic('building')}Bei Arbeit</span><div class="cur">Suche …</div><div class="slot"></div></div>
+      <div class="field"><span class="label">${ic('flag')}Zur Arbeit: Ankunft bis (optional)</span><input type="time" id="wArr" value="${esc(draft.arriveOut || '')}"></div>
+      <div class="row2"><button class="btn" id="wBack">Zurück</button><button class="btn primary" id="wDone">Fertig</button></div>`;
+    $('wBack').onclick = () => { wizStep--; renderWizard(); };
+    const boxes = { home: $('wsHome'), work: $('wsWork') };
+    const defs = [['home', 'homeStation', 1], ['work', 'workStation', 3]];
+    const fill = async () => {
+      let st = null, err = '';
+      try { st = await resolveStations(draft); } catch (e) { err = errText(e); }
+      for (const [k, skey] of defs) {
+        boxes[k].querySelector('.cur').textContent = st ? st[k].name + (st.auto[k] ? ' (automatisch)' : '') : (draft[skey] ? draft[skey].name : err);
+      }
+    };
+    for (const [k, skey, fi] of defs) {
+      const slot = boxes[k].querySelector('.slot');
+      slot.innerHTML = '<button type="button" class="linkbtn">Anderen Bahnhof wählen</button><div class="pkw"></div>';
+      slot.querySelector('.linkbtn').onclick = () => {
+        slot.querySelector('.linkbtn').hidden = true;
+        picker(slot.querySelector('.pkw'), FIELDS[fi], v => { draft[skey] = v; fill(); }, false);
+      };
+    }
+    fill();
+    $('wDone').onclick = () => {
+      cfg.home = draft.home; cfg.work = draft.work;
+      cfg.homeStation = draft.homeStation || null; cfg.workStation = draft.workStation || null;
+      cfg.arrive.out = $('wArr').value;
+      saveCfg(); $('wiz').close(); reset(); setMode(mode);
+    };
+  }
+  $('wiz').addEventListener('cancel', e => e.preventDefault());      // Einrichtung nicht per Esc überspringen
+
+  const applyChanges = () => { if (changed) { changed = false; reset(); setMode(mode); } };
   $('dlg').addEventListener('close', applyChanges);
   $('gear').onclick = () => openSettings('places');
 
@@ -1007,6 +1145,7 @@ dialog::backdrop { background: rgba(0,0,0,.55); }
 
   /* ---------- Start ---------- */
   applyTheme();
+  wideMQ.addEventListener('change', () => { showPanes(); if (carVisible() && configured()) setMode(mode); });
   renderSegs();
   setMode(mode);
   reset();
