@@ -75,14 +75,14 @@ a { color: inherit; }
 .time { min-width: 0; }
 .clock { font-size: 60px; font-weight: 300; font-variant-numeric: tabular-nums; line-height: .95; letter-spacing: -.045em; }
 .date { margin-top: 6px; font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
-.wx { display: flex; flex-direction: column; gap: 8px; padding: 12px 16px 12px 14px; border-radius: 22px; background: var(--glass); border: 1px solid var(--glass-border); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); box-shadow: 0 6px 24px rgba(0,0,0,.14); flex: none; }
+.wx { display: flex; align-items: center; gap: 12px; padding: 10px 14px 10px 12px; border-radius: 22px; background: var(--glass); border: 1px solid var(--glass-border); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); box-shadow: 0 6px 24px rgba(0,0,0,.14); flex: none; }
 .wx .wm { display: flex; align-items: center; gap: 10px; }
-.wx .wm .ic { width: 50px; height: 50px; stroke-width: 1.4; }
-.wx .t { font-size: 38px; font-weight: 700; line-height: 1; letter-spacing: -.03em; }
+.wx .wm .ic { width: 44px; height: 44px; stroke-width: 1.4; }
+.wx .t { font-size: 34px; font-weight: 700; line-height: 1; letter-spacing: -.03em; }
 .wx .c { font-size: 13px; color: var(--muted); margin-top: 3px; font-weight: 600; }
-.wx .wr { display: flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; background: var(--glass); font-size: 13px; font-weight: 600; color: var(--muted); }
-.wx .wr .ic { width: 16px; height: 16px; }
-.wx .wr b { color: var(--text); font-size: 15px; font-variant-numeric: tabular-nums; }
+.wx .wr { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 6px 9px; border-radius: 16px; background: var(--glass); font-size: 10px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); line-height: 1.15; }
+.wx .wr .ic { width: 18px; height: 18px; }
+.wx .wr b { color: var(--text); font-size: 16px; font-variant-numeric: tabular-nums; letter-spacing: 0; }
 .wx .wr.wet { background: #38bdf8; color: #04243a; }
 .wx .wr.wet b { color: #04243a; }
 .ctl { display: flex; gap: 8px; align-items: center; }
@@ -244,6 +244,7 @@ button:disabled { opacity: .45; cursor: default; }
   .hd { padding-top: 0; }
 }
 /* kleine Handys */
+@media (max-width: 459px) { .clock { font-size: 52px; } }
 @media (max-width: 359px) { .big { font-size: 52px; } .clock { font-size: 48px; } .cmp .c { padding: 6px 8px; font-size: 13px; } }
 </style>
 </head>
@@ -334,14 +335,14 @@ button:disabled { opacity: .45; cursor: default; }
   };
   const ic = (n, cls = '') => `<svg class="ic ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n]}</svg>`;
   const ICON_GMAPS = `<svg class="brand" viewBox="0 0 24 24" aria-hidden="true"><path fill="#34a853" d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7z"/><path fill="#ea4335" d="M12 2a7 7 0 0 0-6.2 3.8L12 11z"/><path fill="#fbbc04" d="M5.8 5.8A7 7 0 0 0 5 9c0 1.6.7 3.5 1.7 5.3L12 11z"/><path fill="#4285f4" d="M12 2v9l6.2-5.2A7 7 0 0 0 12 2z"/><circle cx="12" cy="9" r="2.6" fill="#fff"/></svg>`;
-  const ICON_WAZE = `<svg class="brand" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#05c8f7"/><path fill="#fff" stroke="#fff" stroke-width="1.2" stroke-linejoin="round" d="M12 5.2 17.6 18.2 12 15.3 6.4 18.2z"/></svg>`;
+  const ICON_WAZE = `<svg class="brand" viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="wzg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4fd8ff"/><stop offset="1" stop-color="#0a9bd6"/></linearGradient></defs><rect x="1" y="1" width="22" height="22" rx="7" fill="url(#wzg)"/><circle cx="8" cy="17.5" r="1.9" fill="#fff"/><path fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M8 14.5V11a3.5 3.5 0 0 1 3.5-3.5H16M13.8 5l2.7 2.5-2.7 2.5"/></svg>`;
 
   /* ---------- Einstellungen ---------- */
   const defaultCfg = () => ({
     home: null, work: null, homeStation: null, workStation: null,      // werden bei der ersten Einrichtung abgefragt
     arrive: { out: '', back: '' },
     workdays: [1, 2, 3, 4, 5],
-    remind: { dep: false, depMin: 10 },
+    remind: { dep: false, depMin: 10, who: 'train' },        // who: train | car | both
     cons: 7,                                                           // Verbrauch in l pro 100 km
     fuel: { type: 'e5', rad: 5, key: '', gps: true },
     theme: 'auto', tomtom: '',
@@ -381,7 +382,7 @@ button:disabled { opacity: .45; cursor: default; }
   let dir = berlinHour() >= 12 ? 'back' : 'out';
   let seq = 0;
   const last = { trains: null, car: null, dl: null, fuel: null };      // fuel: zuletzt geladene Tankstellen
-  const ends = () => dir === 'out'
+  const ends = (d = dir) => d === 'out'
     ? { a: cfg.home, b: cfg.work, sa: cfg.homeStation, sb: cfg.workStation }
     : { a: cfg.work, b: cfg.home, sa: cfg.workStation, sb: cfg.homeStation };
 
@@ -547,10 +548,9 @@ button:disabled { opacity: .45; cursor: default; }
   }
 
   // Der Routenplaner rechnet von Bahnhof zu Bahnhof. Erst nur Zug/S-Bahn, sonst auch Bus/Stadtbahn.
-  async function planJourneys(extra = '', n = 6) {
-    const e = ends();
+  async function planJourneys(extra = '', n = 6, d = dir) {
     const st = await resolveStations(cfg);
-    const sa = dir === 'out' ? st.home : st.work, sb = dir === 'out' ? st.work : st.home;
+    const sa = d === 'out' ? st.home : st.work, sb = d === 'out' ? st.work : st.home;
     const tail = `maxPreTransitTime=1800&maxPostTransitTime=1800&numItineraries=${n}&language=de${extra}`;
     for (const [modes, railOnly] of [['&transitModes=RAIL,SUBURBAN', true], ['', false]]) {
       const r = await getJSON(`${TRANSIT}/api/v1/plan?fromPlace=${encodeURIComponent(sa.id)}&toPlace=${encodeURIComponent(sb.id)}${modes}&${tail}`, 2, 20000);
@@ -564,7 +564,7 @@ button:disabled { opacity: .45; cursor: default; }
   const future = t => new Date(t.dep) > Date.now() - 60000;                  // kommt noch (oder fährt gerade ab)
   const valid = t => new Date(t.arr) > Date.now() - 120000;                  // gehört noch zur Anzeige (auch unterwegs)
   const placeKey = (s, p) => s && s.id ? s.id : `${p.lat},${p.lon}`;
-  const cacheKey = () => { const e = ends(); return `pendelTrains:${placeKey(e.sa, e.a)}>${placeKey(e.sb, e.b)}`; };
+  const cacheKey = (d = dir) => { const e = ends(d); return `pendelTrains:${placeKey(e.sa, e.a)}>${placeKey(e.sb, e.b)}`; };
   function saveTrainsCache(js) { try { localStorage.setItem(cacheKey(), JSON.stringify({ ts: Date.now(), js })); } catch {} }
   function loadTrainsCache() {
     try {
@@ -614,8 +614,8 @@ button:disabled { opacity: .45; cursor: default; }
   }
 
   /* ---------- Ankunftsziel: spätester Zug ---------- */
-  function targetDate() {
-    const v = cfg.arrive[dir];
+  function targetDate(w = dir) {
+    const v = cfg.arrive[w];
     if (!v) return null;
     const [h, m] = v.split(':').map(Number);
     const d = new Date(); d.setHours(h, m, 0, 0);
@@ -623,13 +623,13 @@ button:disabled { opacity: .45; cursor: default; }
     return d;
   }
   const dlCache = {};
-  async function loadDeadline() {
-    const target = targetDate();
+  async function loadDeadline(d = dir) {
+    const target = targetDate(d);
     if (!target || !isWorkday(target)) return null;
-    const key = cacheKey() + '|' + target.getTime();
+    const key = cacheKey(d) + '|' + target.getTime();
     const c = dlCache[key];
     if (c && Date.now() - c.ts < 300000) return c.v;
-    const js = await planJourneys(`&arriveBy=true&time=${encodeURIComponent(target.toISOString())}`, 4);
+    const js = await planJourneys(`&arriveBy=true&time=${encodeURIComponent(target.toISOString())}`, 4, d);
     const v = { js, target };
     dlCache[key] = { ts: Date.now(), v };
     return v;
@@ -666,8 +666,8 @@ button:disabled { opacity: .45; cursor: default; }
   }
 
   /* ---------- Auto ---------- */
-  async function loadCar() {
-    const { a, b } = ends();
+  async function loadCar(d = dir) {
+    const { a, b } = ends(d);
     if (cfg.tomtom) {
       const r = await getJSON(`https://api.tomtom.com/routing/1/calculateRoute/${a.lat},${a.lon}:${b.lat},${b.lon}/json?key=${encodeURIComponent(cfg.tomtom)}&traffic=true&travelMode=car&routeType=fastest`)
         .catch(e => { throw new Error(/HTTP 40[13]/.test(e.message) ? 'TomTom-Key ungültig' : e.message); });
@@ -806,7 +806,7 @@ button:disabled { opacity: .45; cursor: default; }
     el.hidden = false;
     const rain = wx.rain;
     el.innerHTML = `<div class="wm">${ic(icon)}<div><div class="t">${Math.round(wx.temperature_2m)}°</div><div class="c">${txt}</div></div></div>`
-      + (rain == null ? '' : `<div class="wr ${rain >= 50 ? 'wet' : ''}" title="Regenwahrscheinlichkeit in den nächsten 6 Stunden">${ic('drop')}<b>${rain} %</b>Regen · 6 h</div>`);
+      + (rain == null ? '' : `<div class="wr ${rain >= 50 ? 'wet' : ''}" title="Regenwahrscheinlichkeit in den nächsten 6 Stunden">${ic('drop')}<b>${rain} %</b>Regen</div>`);
   }
   async function loadWx() {
     const h = cfg.home;
@@ -817,12 +817,12 @@ button:disabled { opacity: .45; cursor: default; }
   }
 
   /* ---------- Erinnerung vor dem Losgehen ---------- */
-  let reminded = '';
+  const remindedKeys = new Set();
   const askNotify = async () => { if ('Notification' in window && Notification.permission === 'default') { try { await Notification.requestPermission(); } catch {} } };
   function showAlert(title, text) {
     const al = $('alert');
     al.hidden = false;
-    al.innerHTML = `${ic('bell')}<div><b>${esc(title)}</b>${esc(text)}</div><button id="alertOk">OK</button>`;
+    al.innerHTML = `${ic('bell')}<div><b>${esc(title)}</b>${esc(text).replace(/\n/g, '<br>')}</div><button id="alertOk">OK</button>`;
     $('alertOk').onclick = () => { al.hidden = true; };
     try { navigator.vibrate && navigator.vibrate([250, 120, 250]); } catch {}
     try {
@@ -832,30 +832,45 @@ button:disabled { opacity: .45; cursor: default; }
       }
     } catch {}
   }
-  // Wann muss man los? Mit Ankunftsziel: spätestens für das Ziel. Ohne Ziel (nur Zug): für den nächsten Zug.
-  function leaveInfo() {
-    if (mode === 'car') {
-      const at = carLeave();
-      return at ? { at, key: `car|${dir}|${at.toDateString()}`, text: `Mit dem Auto losfahren · ${last.car.minutes} min bis ${cfg.arrive[dir]} Uhr` } : null;
+  // Für beide Richtungen und beide Verkehrsmittel: wann muss man spätestens los, um zur Wunschzeit anzukommen?
+  const remData = {};                                          // Daten der jeweils anderen Richtung
+  const DIRNAME = { out: 'Zur Arbeit', back: 'Nach Hause' };
+  const wantsTrain = () => cfg.remind.who !== 'car', wantsCar = () => cfg.remind.who !== 'train';
+  async function loadRemData(d) {
+    const c = remData[d];
+    if (c && Date.now() - c.ts < 300000) return;
+    const v = remData[d] = { ts: Date.now() };
+    const t = targetDate(d);
+    if (!t || !isWorkday(t)) return;
+    if (wantsTrain()) try { v.dl = await loadDeadline(d); } catch {}
+    if (wantsCar()) try { v.car = await loadCar(d); } catch {}
+  }
+  function leaveList() {
+    const out = [];
+    for (const d of ['out', 'back']) {
+      const t = targetDate(d), data = d === dir ? last : remData[d];
+      const want = cfg.arrive[d];
+      if (!t || !isWorkday(t) || !data) continue;
+      if (wantsTrain() && data.dl) {
+        const tr = pickBest(data.dl).best;
+        if (tr) out.push({ at: new Date(tr.start), key: `train|${d}|${tr.planned}`, text: `${DIRNAME[d]} · Zug ab ${fmt(tr.dep)} (${tr.lines}), Gleis ${tr.platform}` });
+      }
+      if (wantsCar() && data.car) {
+        out.push({ at: new Date(+t - (data.car.minutes + PARK_MIN) * 60000), key: `car|${d}|${t.toDateString()}`, text: `${DIRNAME[d]} · Auto, ${data.car.minutes} min bis ${want} Uhr` });
+      }
     }
-    if (targetDate()) {
-      if (!last.dl || !isWorkday(targetDate())) return null;
-      const t = pickBest(last.dl).best;
-      return t ? { at: new Date(t.start), key: `train|${dir}|${t.planned}`, text: `Zug ${fmt(t.dep)} ${t.lines} · Gleis ${t.platform}` } : null;
-    }
-    const hero = last.trains && isWorkday(new Date()) ? heroOf(last.trains) : null;
-    return hero && !hero.cancelled ? { at: new Date(hero.start), key: `train|${dir}|${hero.planned}`, text: `Zug ${fmt(hero.dep)} ${hero.lines} · Gleis ${hero.platform}` } : null;
+    return out;
   }
   function checkReminder() {
     if (!cfg.remind.dep) return;
-    const info = leaveInfo();
-    if (!info) return;
-    const diff = info.at - Date.now();
-    if (diff <= cfg.remind.depMin * 60000 && diff > -120000 && reminded !== info.key) {
-      reminded = info.key;
-      const m = Math.max(0, Math.round(diff / 60000));
-      showAlert(m ? `In ${m} min losgehen` : 'Jetzt losgehen', `Losgehen um ${fmt(info.at)} · ${info.text}`);
+    const lead = cfg.remind.depMin * 60000, due = [];
+    for (const e of leaveList()) {
+      const diff = e.at - Date.now();
+      if (diff <= lead && diff > -120000 && !remindedKeys.has(e.key)) { remindedKeys.add(e.key); due.push({ ...e, diff }); }
     }
+    if (!due.length) return;
+    const m = Math.max(0, Math.round(Math.min(...due.map(e => e.diff)) / 60000));
+    showAlert(m ? `In ${m} min losgehen` : 'Jetzt losgehen', due.map(e => `Losgehen ${fmt(e.at)}: ${e.text}`).join('\n'));
   }
 
   /* ---------- Orchestrierung ---------- */
@@ -919,6 +934,7 @@ button:disabled { opacity: .45; cursor: default; }
     try { last.dl = trainsErr ? last.dl : await loadDeadline(); } catch { last.dl = null; }
     if (my !== seq) return;
     renderDeadline(last.dl);
+    if (cfg.remind.dep) for (const d of ['out', 'back']) if (d !== dir && my === seq) await loadRemData(d);
     if (carVisible()) await refreshFuel();
   }
   async function refreshFuel() {
@@ -933,6 +949,7 @@ button:disabled { opacity: .45; cursor: default; }
   function reset() {
     if (!configured()) { openWizard(); return; }
     last.trains = last.car = last.dl = last.fuel = null;
+    for (const k in remData) delete remData[k];
     $('hero').innerHTML = '<div class="skel">Lade Verbindungen …</div>';
     $('next').hidden = true; $('dl').hidden = true; $('alert').hidden = true; $('cmp').hidden = true;
     $('car').innerHTML = `<div class="label">${ic('car')}Auto</div><div class="skel">Lade Fahrzeit …</div>`;
@@ -1055,6 +1072,7 @@ button:disabled { opacity: .45; cursor: default; }
   const sw = (id, label, icon, on) => `<label class="sw"><span>${ic(icon)} ${label}</span><input type="checkbox" id="${id}" ${on ? 'checked' : ''}></label>`;
   const mSel = (id, val, opts, unit) => `<select id="${id}">${opts.map(m => `<option value="${m}" ${val === m ? 'selected' : ''}>${m} ${unit}</option>`).join('')}</select>`;
   const remSel = (id, val) => `<select id="${id}">${[[0, 'Aus'], [5, '5 Minuten vorher'], [10, '10 Minuten vorher'], [15, '15 Minuten vorher'], [20, '20 Minuten vorher'], [30, '30 Minuten vorher']].map(([m, l]) => `<option value="${m}" ${val === m ? 'selected' : ''}>${l}</option>`).join('')}</select>`;
+  const whoSel = (id, val) => `<select id="${id}">${[['train', 'Zug'], ['car', 'Auto'], ['both', 'Zug und Auto']].map(([v, l]) => `<option value="${v}" ${val === v ? 'selected' : ''}>${l}</option>`).join('')}</select>`;
   const renderCompareAndCar = () => { if (last.car) renderCar(last.car); };
 
   function openSettings(open) {
@@ -1073,8 +1091,9 @@ button:disabled { opacity: .45; cursor: default; }
       <div class="hint">Daraus wird die späteste Abfahrt berechnet (Zug und Auto). Leer lassen zum Ausschalten.</div>
       <div class="field"><span class="label">Arbeitstage</span><div class="days" id="days">${DAYS.map(([n, l]) => `<button type="button" data-d="${n}" aria-pressed="${cfg.workdays.includes(n)}">${l}</button>`).join('')}</div></div>
       <div class="field"><span class="label">${ic('bell')}Erinnerung vor dem Losgehen</span>${remSel('remMin', cfg.remind.dep ? cfg.remind.depMin : 0)}</div>
+      <div class="field"><span class="label">Erinnerung für</span>${whoSel('remWho', cfg.remind.who)}</div>
       <button type="button" class="btn" id="remTest">${ic('bell')}Erinnerung testen</button>
-      <div class="hint">Die Erinnerung kommt vor dem Start der Fahrt, nicht erst vor der Ankunft. Sie funktioniert, solange die App geöffnet oder im Hintergrund aktiv ist; eine komplett beendete App kann sich ohne Server nicht selbst melden.</div>`;
+      <div class="hint">Gilt für Zur Arbeit und Nach Hause, je nach eingetragener Ankunftszeit. Die Erinnerung kommt vor dem Start der Fahrt, nicht erst vor der Ankunft. Sie funktioniert, solange die App geöffnet oder im Hintergrund aktiv ist; eine komplett beendete App kann sich ohne Server nicht selbst melden.</div>`;
     const auto = `
       <div class="field"><span class="label">${ic('euro')}Verbrauch des Autos (Liter pro 100 km)</span><input type="text" inputmode="decimal" id="cons" value="${esc(String(cfg.cons).replace('.', ','))}" placeholder="z. B. 6,5" autocomplete="off">
         <div class="hint">Daraus und aus dem günstigsten Spritpreis in der Nähe berechnet die App die Kosten der Fahrt.</div></div>
@@ -1133,7 +1152,8 @@ button:disabled { opacity: .45; cursor: default; }
       cfg.workdays = onn ? [...cfg.workdays, d] : cfg.workdays.filter(x => x !== d);
       b.setAttribute('aria-pressed', onn); saveCfg(); changed = true;
     });
-    on('remMin', 'change', e => { const m = +e.target.value; cfg.remind.dep = m > 0; if (m > 0) { cfg.remind.depMin = m; askNotify(); } saveCfg(); });
+    on('remMin', 'change', e => { const m = +e.target.value; cfg.remind.dep = m > 0; if (m > 0) { cfg.remind.depMin = m; askNotify(); } saveCfg(); changed = true; });
+    on('remWho', 'change', e => { cfg.remind.who = e.target.value; saveCfg(); for (const k in remData) delete remData[k]; });
     on('remTest', 'click', async () => { await askNotify(); showAlert('Erinnerung', 'So meldet sich Pendel kurz vor dem Losgehen.'); });
     on('cons', 'change', e => { const v = parseFloat(e.target.value.replace(',', '.')); if (v > 0 && v < 40) { cfg.cons = v; saveCfg(); renderCompareAndCar(); } });
     $('fuelSeg').querySelectorAll('button').forEach(b => b.onclick = () => {
@@ -1159,7 +1179,7 @@ button:disabled { opacity: .45; cursor: default; }
   function openWizard() {
     if ($('dlg').open) $('dlg').close();
     Object.assign(draft, { home: cfg.home, work: cfg.work, homeStation: cfg.homeStation, workStation: cfg.workStation,
-      arriveOut: cfg.arrive.out, arriveBack: cfg.arrive.back, remMin: cfg.remind.dep ? cfg.remind.depMin : 0, cons: cfg.cons });
+      arriveOut: cfg.arrive.out, arriveBack: cfg.arrive.back, remMin: cfg.remind.dep ? cfg.remind.depMin : 0, who: cfg.remind.who, cons: cfg.cons });
     wizStep = 0;
     renderWizard();
     if (!$('wiz').open) $('wiz').showModal();
@@ -1183,10 +1203,11 @@ button:disabled { opacity: .45; cursor: default; }
     if (wizStep === 3) {
       el.innerHTML = `${dots}
         <h2>${ic('clock')}Deine Zeiten</h2>
-        <div class="hint">Alles optional. Daraus berechnet die App, wann du spätestens losmusst.</div>
+        <div class="hint">Alles optional. Daraus berechnet die App für Zug und Auto, wann du spätestens losmusst, und erinnert dich vorher.</div>
         <div class="field"><span class="label">${ic('flag')}Zur Arbeit: ankommen bis</span><input type="time" id="wArrOut" value="${esc(draft.arriveOut || '')}"></div>
         <div class="field"><span class="label">${ic('flag')}Nach Hause: ankommen bis</span><input type="time" id="wArrBack" value="${esc(draft.arriveBack || '')}"></div>
         <div class="field"><span class="label">${ic('bell')}Erinnerung vor dem Losgehen</span>${remSel('wRem', draft.remMin)}</div>
+        <div class="field"><span class="label">Erinnerung für</span>${whoSel('wWho', draft.who)}</div>
         <div class="field"><span class="label">${ic('euro')}Verbrauch (Liter pro 100 km)</span><input type="text" inputmode="decimal" id="wCons" value="${esc(String(draft.cons).replace('.', ','))}" autocomplete="off"></div>
         <div class="row2"><button class="btn" id="wBack">Zurück</button><button class="btn primary" id="wDone">Fertig</button></div>`;
       $('wBack').onclick = () => { wizStep--; renderWizard(); };
@@ -1195,7 +1216,7 @@ button:disabled { opacity: .45; cursor: default; }
         cfg.home = draft.home; cfg.work = draft.work;
         cfg.homeStation = draft.homeStation || null; cfg.workStation = draft.workStation || null;
         cfg.arrive.out = $('wArrOut').value; cfg.arrive.back = $('wArrBack').value;
-        cfg.remind.dep = m > 0; if (m > 0) { cfg.remind.depMin = m; askNotify(); }
+        cfg.remind.dep = m > 0; cfg.remind.who = $('wWho').value; if (m > 0) { cfg.remind.depMin = m; askNotify(); }
         if (cons > 0 && cons < 40) cfg.cons = cons;
         saveCfg(); $('wiz').close(); reset(); setMode(mode);
       };
