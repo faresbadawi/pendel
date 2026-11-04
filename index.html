@@ -139,9 +139,10 @@ footer { text-align: center; color: var(--muted); font-size: 13px; padding-top: 
 (() => {
   'use strict';
   const q = new URLSearchParams(location.search);
-  const DB = (q.get('db') || 'https://v6.db.transport.rest').replace(/\/$/, '');
+  const DB = (q.get('api') || 'https://api.transitous.org').replace(/\/$/, '');   // Transitous (MOTIS), CORS-fähig
   const OSRM = 'https://router.project-osrm.org';
-  const HBF_ID = '8000152';                          // Hannover Hbf (IBNR)
+  const VOEHRUM_ID = 'de-DELFI_de:03157:8146';       // Vöhrum Bahnhof
+  const HBF_ID = 'de-DELFI_de:03241:31';             // Hannover Hbf
   const HOME = { lat: 52.3197, lon: 10.2372 };       // Peine / Vöhrum
   const WORK = { lat: 52.3768, lon: 9.7414 };        // Hannover Hbf – hier ggf. Büro-Koordinaten eintragen
   const PARK_MIN = 5;                                // Puffer für Parkplatzsuche/Weg beim Auto
@@ -170,40 +171,29 @@ footer { text-align: center; color: var(--muted); font-size: 13px; padding-top: 
   }
 
   /* ---------- Bahn ---------- */
-  async function voehrumId() {
-    try { const c = localStorage.getItem('voehrumId'); if (c) return c; } catch {}
-    const r = await getJSON(`${DB}/locations?query=${encodeURIComponent('Vöhrum')}&results=6&stops=true&addresses=false&poi=false&language=de`);
-    const st = r.filter(x => x.type === 'stop' || x.type === 'station');
-    const hit = st.find(x => /v[öo]e?hrum/i.test(x.name)) || null;
-    if (!hit) throw new Error('Haltestelle Vöhrum nicht gefunden');
-    try { localStorage.setItem('voehrumId', hit.id); } catch {}
-    return hit.id;
-  }
-
-  function parseJourney(j) {
-    const all = j.legs || [];
-    const f = all.find(l => !l.walking) || all[0], l = [...all].reverse().find(x => !x.walking) || all[all.length - 1];
-    const dep = f.departure || f.plannedDeparture, arr = l.arrival || l.plannedArrival;
-    const delay = Math.round((f.departureDelay ?? (new Date(dep) - new Date(f.plannedDeparture)) / 1000) / 60);
-    const cancelled = all.some(x => x.cancelled);
-    const rides = all.filter(x => !x.walking);
+  function parseJourney(it) {
+    const rides = it.legs.filter(l => l.mode !== 'WALK');
+    if (!rides.length) return null;
+    const f = rides[0], l = rides[rides.length - 1];
+    const dep = f.from.departure, planned = f.from.scheduledDeparture || dep;
     return {
-      dep, arr, planned: f.plannedDeparture, delay: isFinite(delay) ? delay : 0, cancelled,
-      platform: f.departurePlatform || f.plannedDeparturePlatform || '–',
-      lines: rides.map(x => x.line && x.line.name).filter(Boolean).join(' → ') || 'Zug',
-      transfers: Math.max(0, rides.length - 1),
-      minutes: mins(new Date(arr) - new Date(dep)),
-      arrDelay: Math.round((l.arrivalDelay || 0) / 60),
+      dep, arr: l.to.arrival, planned,
+      delay: Math.round((new Date(dep) - new Date(planned)) / 60000),
+      live: !!f.realTime,
+      cancelled: it.legs.some(x => x.cancelled || x.from.cancelled || x.to.cancelled),
+      platform: f.from.track || f.from.scheduledTrack || '–',
+      lines: rides.map(x => x.routeShortName || x.displayName).filter(Boolean).join(' → ') || 'Zug',
+      transfers: rides.length - 1,
+      minutes: Math.round(it.duration / 60),
     };
   }
   const cls = t => t.cancelled || t.delay >= 5 ? 'bad' : t.delay >= 1 ? 'warn' : 'ok';
-  const statusText = t => t.cancelled ? 'Fällt aus' : t.delay >= 1 ? `+${t.delay} min` : 'pünktlich';
+  const statusText = t => t.cancelled ? 'Fällt aus' : t.delay >= 1 ? `+${t.delay} min` : t.live ? 'pünktlich' : 'planmäßig';
 
   async function loadTrains() {
-    const vid = await voehrumId();
-    const [from, to] = dir === 'out' ? [vid, HBF_ID] : [HBF_ID, vid];
-    const r = await getJSON(`${DB}/journeys?from=${from}&to=${to}&results=6&stopovers=false&remarks=false&language=de`);
-    const js = (r.journeys || []).map(parseJourney).filter(t => t.dep && t.arr);
+    const [from, to] = dir === 'out' ? [VOEHRUM_ID, HBF_ID] : [HBF_ID, VOEHRUM_ID];
+    const r = await getJSON(`${DB}/api/v1/plan?fromPlace=${encodeURIComponent(from)}&toPlace=${encodeURIComponent(to)}&numItineraries=6&language=de`);
+    const js = (r.itineraries || []).map(parseJourney).filter(t => t && t.dep && t.arr);
     if (!js.length) throw new Error('Keine Verbindungen gefunden');
     return js;
   }
