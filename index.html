@@ -74,11 +74,17 @@ a { color: inherit; }
 .hd { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 4px 4px 2px; }
 .time { min-width: 0; }
 .clock { font-size: 60px; font-weight: 300; font-variant-numeric: tabular-nums; line-height: .95; letter-spacing: -.045em; }
-.date { margin-top: 6px; font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
-.wx { display: flex; align-items: center; gap: 10px; padding: 10px 14px 10px 12px; border-radius: 20px; background: var(--glass); border: 1px solid var(--glass-border); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); box-shadow: 0 6px 24px rgba(0,0,0,.14); min-width: 0; }
-.wx .ic { width: 38px; height: 38px; stroke-width: 1.5; }
-.wx .t { font-size: 30px; font-weight: 700; line-height: 1; letter-spacing: -.02em; }
-.wx .c { font-size: 12px; color: var(--muted); margin-top: 3px; font-weight: 600; }
+.date { margin-top: 6px; font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.wx { display: flex; flex-direction: column; gap: 8px; padding: 12px 16px 12px 14px; border-radius: 22px; background: var(--glass); border: 1px solid var(--glass-border); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); box-shadow: 0 6px 24px rgba(0,0,0,.14); flex: none; }
+.wx .wm { display: flex; align-items: center; gap: 10px; }
+.wx .wm .ic { width: 50px; height: 50px; stroke-width: 1.4; }
+.wx .t { font-size: 38px; font-weight: 700; line-height: 1; letter-spacing: -.03em; }
+.wx .c { font-size: 13px; color: var(--muted); margin-top: 3px; font-weight: 600; }
+.wx .wr { display: flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; background: var(--glass); font-size: 13px; font-weight: 600; color: var(--muted); }
+.wx .wr .ic { width: 16px; height: 16px; }
+.wx .wr b { color: var(--text); font-size: 15px; font-variant-numeric: tabular-nums; }
+.wx .wr.wet { background: #38bdf8; color: #04243a; }
+.wx .wr.wet b { color: #04243a; }
 .ctl { display: flex; gap: 8px; align-items: center; }
 .ctl .seg { flex: 1; }
 .icon-btn { width: 52px; min-height: 52px; border-radius: 16px; background: var(--glass); border: 1px solid var(--glass-border); padding: 0; flex: none; display: grid; place-items: center; }
@@ -166,11 +172,27 @@ dialog::backdrop { background: rgba(0,0,0,.55); }
 .sheet { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
 .sheet h2 { font-size: 22px; display: flex; align-items: center; gap: 8px; }
 .grp { border: 1px solid var(--glass-border); border-radius: 18px; background: var(--glass); }
-.grp > summary { list-style: none; min-height: 52px; padding: 0 14px; display: flex; align-items: center; gap: 10px; font-weight: 700; cursor: pointer; }
-.grp > summary::-webkit-details-marker { display: none; }
-.grp > summary::after { content: ""; margin-left: auto; width: 9px; height: 9px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg); transition: transform .15s; opacity: .7; }
-.grp[open] > summary::after { transform: rotate(225deg); }
-.grp .body { padding: 2px 14px 14px; display: flex; flex-direction: column; gap: 14px; }
+.grp { transition: background .25s; }
+.grp.open { background: var(--glass-strong); }
+.gh { width: 100%; background: none; text-align: left; min-height: 54px; padding: 0 14px; display: flex; align-items: center; gap: 10px; font-weight: 700; border-radius: 18px; }
+.gh::after { content: ""; margin-left: auto; width: 9px; height: 9px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg); transition: transform .3s cubic-bezier(.2,.8,.2,1); opacity: .7; }
+.grp.open > .gh::after { transform: rotate(225deg) translate(-2px, -2px); }
+.gb { display: grid; grid-template-rows: 0fr; visibility: hidden; transition: grid-template-rows .35s cubic-bezier(.2,.8,.2,1), visibility 0s .35s; }
+.grp.open > .gb { grid-template-rows: 1fr; visibility: visible; transition: grid-template-rows .35s cubic-bezier(.2,.8,.2,1), visibility 0s; }
+.gb > .body { overflow: hidden; min-height: 0; }
+.gb .in { padding: 2px 14px 16px; display: flex; flex-direction: column; gap: 14px; opacity: 0; transform: translateY(-6px); transition: opacity .3s .05s, transform .35s .05s; }
+.grp.open .in { opacity: 1; transform: none; }
+dialog[open] { animation: pop .34s cubic-bezier(.2,.8,.2,1); }
+dialog[open]::backdrop { animation: fade .3s ease; }
+.sheet > .grp { animation: rise .45s cubic-bezier(.2,.8,.2,1) both; animation-delay: calc(var(--i, 0) * 55ms); }
+@keyframes pop { from { opacity: 0; transform: translateY(26px) scale(.96); } }
+@keyframes fade { from { opacity: 0; } }
+@keyframes rise { from { opacity: 0; transform: translateY(14px); } }
+.how { font-size: 14px; line-height: 1.45; }
+.how b { display: block; margin-top: 6px; }
+.how ol { padding-left: 20px; margin-top: 2px; color: var(--muted); }
+.credit { text-align: center; font-weight: 700; padding: 6px 0 0; }
+@media (prefers-reduced-motion: reduce) { *, ::before, ::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
 .field { display: flex; flex-direction: column; gap: 6px; }
 .field .cur { font-weight: 700; font-size: 15px; word-break: break-word; }
 .sheet input[type="search"], .sheet input[type="text"], .sheet input[type="time"], .sheet select { width: 100%; height: 48px; padding: 0 14px; border-radius: 14px; border: 1px solid var(--glass-border); background: rgba(255,255,255,.14); }
@@ -307,17 +329,20 @@ button:disabled { opacity: .45; cursor: default; }
     rain: '<path d="M4 14.9A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.24"/><path d="M16 14v6"/><path d="M8 14v6"/><path d="M12 16v6"/>',
     snow: '<path d="M4 14.9A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.24"/><path d="M8 15h.01"/><path d="M8 19h.01"/><path d="M12 17h.01"/><path d="M12 21h.01"/><path d="M16 15h.01"/><path d="M16 19h.01"/>',
     storm: '<path d="M6 16.33A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 .5 8.97"/><path d="m13 12-3 5h4l-3 5"/>',
+    drop: '<path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/>',
+    euro: '<path d="M4 10h12"/><path d="M4 14h9"/><path d="M19 6a7.7 7.7 0 0 0-5.2-2A7.9 7.9 0 0 0 6 12c0 4.4 3.5 8 7.8 8 2 0 3.8-.8 5.2-2"/>',
   };
   const ic = (n, cls = '') => `<svg class="ic ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n]}</svg>`;
   const ICON_GMAPS = `<svg class="brand" viewBox="0 0 24 24" aria-hidden="true"><path fill="#34a853" d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7z"/><path fill="#ea4335" d="M12 2a7 7 0 0 0-6.2 3.8L12 11z"/><path fill="#fbbc04" d="M5.8 5.8A7 7 0 0 0 5 9c0 1.6.7 3.5 1.7 5.3L12 11z"/><path fill="#4285f4" d="M12 2v9l6.2-5.2A7 7 0 0 0 12 2z"/><circle cx="12" cy="9" r="2.6" fill="#fff"/></svg>`;
-  const ICON_WAZE = `<svg class="brand" viewBox="0 0 24 24" aria-hidden="true"><path fill="#33ccff" d="M12 2.5c-4.6 0-8.3 3.4-8.3 7.6 0 1.6.5 3 1.4 4.2-.1 1.2-.5 2.3-1.2 3.2 1.4.1 2.7-.3 3.7-1 1.3.6 2.8.9 4.4.9 4.6 0 8.3-3.4 8.3-7.6S16.6 2.5 12 2.5z"/><circle cx="9.2" cy="9.4" r="1.2" fill="#1a1a1a"/><circle cx="14.8" cy="9.4" r="1.2" fill="#1a1a1a"/><path fill="none" stroke="#1a1a1a" stroke-width="1.3" stroke-linecap="round" d="M9 12.6c1.7 1.6 4.3 1.6 6 0"/><circle cx="8" cy="19.8" r="1.7" fill="#1a1a1a"/><circle cx="15.5" cy="19.8" r="1.7" fill="#1a1a1a"/></svg>`;
+  const ICON_WAZE = `<svg class="brand" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#05c8f7"/><path fill="#fff" stroke="#fff" stroke-width="1.2" stroke-linejoin="round" d="M12 5.2 17.6 18.2 12 15.3 6.4 18.2z"/></svg>`;
 
   /* ---------- Einstellungen ---------- */
   const defaultCfg = () => ({
     home: null, work: null, homeStation: null, workStation: null,      // werden bei der ersten Einrichtung abgefragt
     arrive: { out: '', back: '' },
     workdays: [1, 2, 3, 4, 5],
-    remind: { dep: false, depMin: 10, arr: false, arrMin: 5 },
+    remind: { dep: false, depMin: 10 },
+    cons: 7,                                                           // Verbrauch in l pro 100 km
     fuel: { type: 'e5', rad: 5, key: '', gps: true },
     theme: 'auto', tomtom: '',
   });
@@ -328,7 +353,7 @@ button:disabled { opacity: .45; cursor: default; }
       const s = JSON.parse(localStorage.getItem('pendelCfg') || '{}');
       if (s.routes) Object.assign(s, s.routes[0] || {});                      // ältere Einstellungen übernehmen
       if (s.arriveBy !== undefined && !s.arrive) s.arrive = { out: s.arriveBy, back: '' };
-      if (s.remindOn !== undefined && !s.remind) s.remind = { dep: !!s.remindOn, depMin: s.remindMin || 10, arr: false, arrMin: 5 };
+      if (s.remindOn !== undefined && !s.remind) s.remind = { dep: !!s.remindOn, depMin: s.remindMin || 10 };
       ['routes', 'route', 'useAlt', 'arriveBy', 'remindOn', 'remindMin'].forEach(k => delete s[k]);
       const out = { ...d, ...s, arrive: { ...d.arrive, ...s.arrive }, remind: { ...d.remind, ...s.remind }, fuel: { ...d.fuel, ...s.fuel } };
       for (const [k, sk] of [['home', 'homeStation'], ['work', 'workStation']]) {   // frühere Voreinstellungen verwerfen
@@ -355,7 +380,7 @@ button:disabled { opacity: .45; cursor: default; }
   let mode = (() => { try { return localStorage.getItem('pendelMode') === 'car' ? 'car' : 'train'; } catch { return 'train'; } })();
   let dir = berlinHour() >= 12 ? 'back' : 'out';
   let seq = 0;
-  const last = { trains: null, car: null, dl: null, fuel: null };
+  const last = { trains: null, car: null, dl: null, fuel: null };      // fuel: zuletzt geladene Tankstellen
   const ends = () => dir === 'out'
     ? { a: cfg.home, b: cfg.work, sa: cfg.homeStation, sb: cfg.workStation }
     : { a: cfg.work, b: cfg.home, sa: cfg.workStation, sb: cfg.homeStation };
@@ -407,8 +432,17 @@ button:disabled { opacity: .45; cursor: default; }
   // Namen so, wie sie die DB-Suche kennt (bahn.de / DB Navigator).
   const dbName = n => String(n).replace(/^Hannover Bf /, 'Hannover ').replace(/K\.-Wiechert/, 'Karl-Wiechert').replace(/,? (Bahnhof|Bf)$/, '');
   const localISO = d => new Date(d).toLocaleString('sv-SE', { timeZone: TZ }).replace(' ', 'T');
-  const dbLink = (from, to, when) =>
+  const dbWeb = (from, to, when) =>
     `https://www.bahn.de/buchung/fahrplan/suche#sts=true&so=${encodeURIComponent(dbName(from))}&zo=${encodeURIComponent(dbName(to))}&kl=2&hd=${encodeURIComponent(localISO(when))}&hza=D&ar=false&s=true&d=false&fm=false&bp=false`;
+  // Auf Android gezielt die DB-Navigator-App ansteuern (Paket de.hafas.android.db); ist sie nicht installiert
+  // oder öffnet den Link nicht, fällt Chrome auf die bahn.de-Seite zurück.
+  const isAndroid = /Android/i.test(navigator.userAgent);
+  const dbAttrs = (from, to, when) => {
+    const web = dbWeb(from, to, when);
+    if (!isAndroid) return `href="${web}" target="_blank" rel="noopener"`;
+    const intent = 'intent://' + web.slice('https://'.length) + `#Intent;scheme=https;package=de.hafas.android.db;S.browser_fallback_url=${encodeURIComponent(web)};end`;
+    return `href="${intent}"`;
+  };
 
   function parseJourney(it) {
     const idx = it.legs.findIndex(l => l.mode !== 'WALK');
@@ -559,7 +593,7 @@ button:disabled { opacity: .45; cursor: default; }
     else if (hero.gap != null && hero.gap < 3) notes += note('warn', 'alert', `Knapper Umstieg in ${esc(hero.via)}: nur ${hero.gap} min`);
     hero.notes.forEach(m => { notes += note('', 'info', esc(m)); });
     $('hero').innerHTML = `
-      <a class="tap" href="${dbLink(hero.fromRaw, hero.toRaw, hero.planned)}" target="_blank" rel="noopener" aria-label="In DB Navigator öffnen">
+      <a class="tap" ${dbAttrs(hero.fromRaw, hero.toRaw, hero.planned)} aria-label="In DB Navigator öffnen">
         <div class="label">${ic('train')}<span>${esc(hero.fromName)} → ${esc(hero.toName)}</span><span class="grow"></span>${hero.iris ? '<span class="live">Live</span>' : ''}<span class="dbchip">DB${ic('external')}</span></div>
         <div class="row">
           <div class="big">${fmt(hero.dep)}${hero.delay >= 1 && !hero.cancelled ? `<em class="old">${fmt(hero.planned)}</em>` : ''}</div>
@@ -574,7 +608,7 @@ button:disabled { opacity: .45; cursor: default; }
       </a>${notes}`;
     $('next').hidden = !rest.length;
     $('next').querySelector('.list').innerHTML = rest.map(t => `
-      <a class="item ${cls(t)}" href="${dbLink(t.fromRaw, t.toRaw, t.planned)}" target="_blank" rel="noopener">
+      <a class="item ${cls(t)}" ${dbAttrs(t.fromRaw, t.toRaw, t.planned)}>
         <div class="t">${fmt(t.dep)}</div>
         <div class="m"><b>${esc(t.lines)}</b><br>Gl. ${esc(t.platform)} · an ${fmt(t.arr)}</div>
         <span class="pill ${cls(t)}">${statusText(t)}</span>
@@ -603,17 +637,22 @@ button:disabled { opacity: .45; cursor: default; }
     dlCache[key] = { ts: Date.now(), v };
     return v;
   }
+  // Spätester Zug, der noch rechtzeitig ankommt (und der planmäßige, falls er ausfällt oder zu spät ist).
+  function pickBest(d) {
+    const { js, target } = d;
+    const byTime = js.filter(t => new Date(t.schedArr) <= target).sort((a, b) => new Date(a.dep) - new Date(b.dep));
+    const best = [...js].filter(t => !t.cancelled && new Date(t.arr) <= target).sort((a, b) => new Date(a.dep) - new Date(b.dep)).pop();
+    return { best, planned: byTime[byTime.length - 1] };
+  }
   function renderDeadline(d) {
     const el = $('dl');
     const t0 = targetDate();
     if (!t0) { el.hidden = true; return; }
     const solo = html => { el.hidden = false; el.innerHTML = html; el.querySelector('.note').style.marginTop = '0'; };
-    if (!isWorkday(t0)) { solo(note('', 'info', 'Kein Arbeitstag – Ankunftsziel und Wecker pausieren.')); return; }
+    if (!isWorkday(t0)) { solo(note('', 'info', 'Kein Arbeitstag – Ankunftsziel und Erinnerung pausieren.')); return; }
     if (!d) { el.hidden = true; return; }
-    const { js, target } = d, want = cfg.arrive[dir];
-    const byTime = js.filter(t => new Date(t.schedArr) <= target).sort((a, b) => new Date(a.dep) - new Date(b.dep));
-    const planned = byTime[byTime.length - 1];
-    const best = [...js].filter(t => !t.cancelled && new Date(t.arr) <= target).sort((a, b) => new Date(a.dep) - new Date(b.dep)).pop();
+    const { target } = d, want = cfg.arrive[dir];
+    const { best, planned } = pickBest(d);
     if (!best) { solo(note('bad', 'alert', `Kein Zug erreicht ${esc(want)} Uhr – Auto nehmen oder früher losfahren.`)); return; }
     const buf = mins(target - new Date(best.arr));
     const day = target.toDateString() === new Date().toDateString() ? 'heute' : 'morgen';
@@ -622,7 +661,7 @@ button:disabled { opacity: .45; cursor: default; }
     if (planned && planned !== best) extra = note('warn', 'alert', `Planmäßig ${fmt(planned.planned)} ${esc(planned.lines)} – ${planned.cancelled ? 'fällt aus' : `kommt zu spät (+${planned.delay} min)`}. Nimm ${fmt(best.dep)}.`);
     el.hidden = false;
     el.innerHTML = `
-      <a class="tap" href="${dbLink(best.fromRaw, best.toRaw, best.planned)}" target="_blank" rel="noopener">
+      <a class="tap" ${dbAttrs(best.fromRaw, best.toRaw, best.planned)}>
         <div class="label">${ic('flag')}<span>${dir === 'out' ? 'Spätestens' : 'Zuhause'} ${esc(want)} Uhr · ${day}</span><span class="grow"></span><span class="dbchip">DB${ic('external')}</span></div>
         <div class="row"><div class="big">${fmt(best.dep)}</div><span class="pill ${k}">${buf} min Puffer</span></div>
         <div class="line"><b>${esc(best.lines)}</b> · Gl. ${esc(best.platform)} · Ankunft ${fmt(best.arr)}</div>
@@ -642,14 +681,35 @@ button:disabled { opacity: .45; cursor: default; }
     if (r.code !== 'Ok' || !r.routes[0]) throw new Error('Keine Route');
     return { minutes: Math.round(r.routes[0].duration / 60), km: r.routes[0].distance / 1000, live: false, a, b };
   }
+  // Günstigster Preis aus den zuletzt geladenen Tankstellen (Tankerkönig).
+  const cheapest = () => { const l = last.fuel && last.fuel.list; return l && l.length ? l.reduce((a, s) => s.price < a.price ? s : a) : null; };
+  const eur = x => x.toFixed(2).replace('.', ',') + ' €';
+  const num1 = x => x.toFixed(1).replace('.', ',');
+  // Spätestes Losfahren mit dem Auto für das Ankunftsziel (inkl. Parkplatz-Puffer).
+  function carLeave() {
+    const target = targetDate();
+    if (!target || !isWorkday(target) || !last.car) return null;
+    return new Date(+target - (last.car.minutes + PARK_MIN) * 60000);
+  }
   function renderCar(c) {
     const gm = `https://www.google.com/maps/dir/?api=1&destination=${c.b.lat},${c.b.lon}&travelmode=driving&dir_action=navigate`;
     const wz = `https://waze.com/ul?ll=${c.b.lat},${c.b.lon}&navigate=yes`;
     const d = c.live ? (c.delay >= 5 ? 'bad' : c.delay >= 1 ? 'warn' : 'ok') : '';
     const nm = l => esc(l.replace(' (Standard)', '').split(',')[0]);
+    const cons = +cfg.cons > 0 ? +cfg.cons : 0, litres = c.km * cons / 100, st = cheapest();
+    const cost = cons && st ? litres * st.price : null;
+    const leave = carLeave(), want = cfg.arrive[dir];
     $('car').innerHTML = `
       <div class="label">${ic('car')}<span>${nm(c.a.label)} → ${nm(c.b.label)}</span></div>
       <div class="car"><div class="big">${c.minutes}<em>min</em></div><div class="km">${c.km.toFixed(1).replace('.', ',')} km</div></div>
+      ${leave ? `<div class="line">Losfahren spätestens <b>${fmt(leave)}</b> für Ankunft ${esc(want)} Uhr</div>` : ''}
+      ${cons ? `<div class="facts">
+        <div><b>${cost != null ? eur(cost) : '–'}</b><span>Spritkosten</span></div>
+        <div><b>${cost != null ? eur(cost * 2) : '–'}</b><span>Hin und zurück</span></div>
+        <div><b>${num1(litres)} l</b><span>Verbrauch</span></div>
+      </div>
+      <div class="line">${st ? `Günstigster Preis: <b>${priceHtml(st.price)} €/l</b> ${FUELS[last.fuel.type]} · ${esc(st.brand || st.name)} · ${num1(cons)} l/100 km`
+        : cfg.fuel.key ? 'Kosten erscheinen, sobald die Spritpreise geladen sind.' : `Für die Kosten wird ein Tankerkönig-Schlüssel gebraucht. <button class="linkbtn" id="toFuelKey">Eintragen</button>`}</div>` : ''}
       ${c.live
         ? `<div class="line"><span class="pill ${d}">${c.delay >= 1 ? '+' + c.delay + ' min Verkehr' : 'freie Fahrt'}</span> Live-Verkehr (TomTom)</div>`
         : `<div class="line">Ohne Live-Verkehr berechnet. <button class="linkbtn" id="toSettings">TomTom-Schlüssel eintragen</button></div>`}
@@ -658,6 +718,7 @@ button:disabled { opacity: .45; cursor: default; }
         <a class="btn" href="${wz}" target="_blank" rel="noopener">${ICON_WAZE}Waze</a>
       </div>`;
     const b = $('toSettings'); if (b) b.onclick = () => openSettings('auto');
+    const k = $('toFuelKey'); if (k) k.onclick = () => openSettings('auto');
   }
 
   /* ---------- Spritpreise (Tankerkönig / MTS-K) ---------- */
@@ -746,17 +807,21 @@ button:disabled { opacity: .45; cursor: default; }
     if (!wx) { el.hidden = true; return; }
     const [icon, txt] = WMO(wx.weather_code);
     el.hidden = false;
-    el.innerHTML = `${ic(icon)}<div><div class="t">${Math.round(wx.temperature_2m)}°</div><div class="c">${txt}</div></div>`;
+    const rain = wx.rain;
+    el.innerHTML = `<div class="wm">${ic(icon)}<div><div class="t">${Math.round(wx.temperature_2m)}°</div><div class="c">${txt}</div></div></div>`
+      + (rain == null ? '' : `<div class="wr ${rain >= 50 ? 'wet' : ''}" title="Regenwahrscheinlichkeit in den nächsten 6 Stunden">${ic('drop')}<b>${rain} %</b>Regen · 6 h</div>`);
   }
   async function loadWx() {
     const h = cfg.home;
     if (!h) return;
-    const r = await getJSON(`https://api.open-meteo.com/v1/forecast?latitude=${h.lat}&longitude=${h.lon}&current=temperature_2m,weather_code&timezone=Europe%2FBerlin`);
-    wx = r.current;
+    const r = await getJSON(`https://api.open-meteo.com/v1/forecast?latitude=${h.lat}&longitude=${h.lon}&current=temperature_2m,weather_code&hourly=precipitation_probability&forecast_hours=6&timezone=Europe%2FBerlin`);
+    const p = ((r.hourly || {}).precipitation_probability || []).filter(x => x != null);
+    wx = { ...r.current, rain: p.length ? Math.max(...p) : null };    // höchste Regenwahrscheinlichkeit der nächsten 6 Stunden
   }
 
-  /* ---------- Wecker: Abfahrt & Ankunft ---------- */
-  let remindedDep = '', remindedArr = '';
+  /* ---------- Erinnerung vor dem Losgehen ---------- */
+  let reminded = '';
+  const askNotify = async () => { if ('Notification' in window && Notification.permission === 'default') { try { await Notification.requestPermission(); } catch {} } };
   function showAlert(title, text) {
     const al = $('alert');
     al.hidden = false;
@@ -770,25 +835,29 @@ button:disabled { opacity: .45; cursor: default; }
       }
     } catch {}
   }
-  function checkReminder() {
-    if (!last.trains || !isWorkday(new Date())) return;
-    const now = Date.now();
-    if (cfg.remind.dep) {
-      const hero = heroOf(last.trains);
-      if (hero && !hero.cancelled) {
-        const diff = new Date(hero.start) - now;
-        if (diff <= cfg.remind.depMin * 60000 && diff > -60000 && remindedDep !== hero.dep) {
-          remindedDep = hero.dep;
-          showAlert('Gleich losgehen', `${fmt(hero.dep)} ${hero.lines} · Gleis ${hero.platform}`);
-        }
-      }
+  // Wann muss man los? Mit Ankunftsziel: spätestens für das Ziel. Ohne Ziel (nur Zug): für den nächsten Zug.
+  function leaveInfo() {
+    if (mode === 'car') {
+      const at = carLeave();
+      return at ? { at, key: `car|${dir}|${at.toDateString()}`, text: `Mit dem Auto losfahren · ${last.car.minutes} min bis ${cfg.arrive[dir]} Uhr` } : null;
     }
-    if (cfg.remind.arr) {
-      const t = last.trains.find(x => !x.cancelled && new Date(x.dep) <= now && new Date(x.arr) > now);   // zuletzt gestarteter Zug
-      if (t && new Date(t.arr) - now <= cfg.remind.arrMin * 60000 && remindedArr !== t.dep) {
-        remindedArr = t.dep;
-        showAlert('Gleich da', `Ankunft ${fmt(t.arr)} · ${t.toName}`);
-      }
+    if (targetDate()) {
+      if (!last.dl || !isWorkday(targetDate())) return null;
+      const t = pickBest(last.dl).best;
+      return t ? { at: new Date(t.start), key: `train|${dir}|${t.planned}`, text: `Zug ${fmt(t.dep)} ${t.lines} · Gleis ${t.platform}` } : null;
+    }
+    const hero = last.trains && isWorkday(new Date()) ? heroOf(last.trains) : null;
+    return hero && !hero.cancelled ? { at: new Date(hero.start), key: `train|${dir}|${hero.planned}`, text: `Zug ${fmt(hero.dep)} ${hero.lines} · Gleis ${hero.platform}` } : null;
+  }
+  function checkReminder() {
+    if (!cfg.remind.dep) return;
+    const info = leaveInfo();
+    if (!info) return;
+    const diff = info.at - Date.now();
+    if (diff <= cfg.remind.depMin * 60000 && diff > -120000 && reminded !== info.key) {
+      reminded = info.key;
+      const m = Math.max(0, Math.round(diff / 60000));
+      showAlert(m ? `In ${m} min losgehen` : 'Jetzt losgehen', `Losgehen um ${fmt(info.at)} · ${info.text}`);
     }
   }
 
@@ -856,12 +925,17 @@ button:disabled { opacity: .45; cursor: default; }
     if (carVisible()) await refreshFuel();
   }
   async function refreshFuel() {
-    try { renderFuel(await loadFuel()); } catch (e) { renderFuel(null, `Spritpreise nicht erreichbar: ${errText(e)}`); }
+    try {
+      const v = await loadFuel();
+      last.fuel = v && v.list ? v : null;
+      renderFuel(v);
+    } catch (e) { renderFuel(null, `Spritpreise nicht erreichbar: ${errText(e)}`); }
+    if (last.car) renderCar(last.car);                                  // Kosten mit dem günstigsten Preis aktualisieren
   }
 
   function reset() {
     if (!configured()) { openWizard(); return; }
-    last.trains = last.car = last.dl = null;
+    last.trains = last.car = last.dl = last.fuel = null;
     $('hero').innerHTML = '<div class="skel">Lade Verbindungen …</div>';
     $('next').hidden = true; $('dl').hidden = true; $('alert').hidden = true; $('cmp').hidden = true;
     $('car').innerHTML = `<div class="label">${ic('car')}Auto</div><div class="skel">Lade Fahrzeit …</div>`;
@@ -983,9 +1057,12 @@ button:disabled { opacity: .45; cursor: default; }
   }
   const sw = (id, label, icon, on) => `<label class="sw"><span>${ic(icon)} ${label}</span><input type="checkbox" id="${id}" ${on ? 'checked' : ''}></label>`;
   const mSel = (id, val, opts, unit) => `<select id="${id}">${opts.map(m => `<option value="${m}" ${val === m ? 'selected' : ''}>${m} ${unit}</option>`).join('')}</select>`;
+  const remSel = (id, val) => `<select id="${id}">${[[0, 'Aus'], [5, '5 Minuten vorher'], [10, '10 Minuten vorher'], [15, '15 Minuten vorher'], [20, '20 Minuten vorher'], [30, '30 Minuten vorher']].map(([m, l]) => `<option value="${m}" ${val === m ? 'selected' : ''}>${l}</option>`).join('')}</select>`;
+  const renderCompareAndCar = () => { if (last.car) renderCar(last.car); };
 
   function openSettings(open) {
-    const grp = (id, icon, title, body) => `<details class="grp" ${open === id ? 'open' : ''}><summary>${ic(icon)}${title}</summary><div class="body">${body}</div></details>`;
+    let n = 0;
+    const grp = (id, icon, title, body) => `<section class="grp ${open === id ? 'open' : ''}" style="--i:${n++}"><button type="button" class="gh" aria-expanded="${open === id}">${ic(icon)}<span>${title}</span></button><div class="gb"><div class="body"><div class="in">${body}</div></div></div></section>`;
     const places = FIELDS.map(f => `
       <div class="field" data-k="${f.key}">
         <span class="label">${ic(f.icon)}${f.title}</span>
@@ -994,16 +1071,16 @@ button:disabled { opacity: .45; cursor: default; }
         ${f.kind === 'stop' ? '<button type="button" class="btn auto">Automatisch (nächster Bahnhof)</button>' : ''}
       </div>`).join('') + '<div class="hint">Die Bahn wird von Bahnhof zu Bahnhof gerechnet. Ohne Auswahl nimmt die App den nächsten Bahnhof zur Adresse.</div>';
     const times = `
-      <div class="field"><span class="label">${ic('flag')}Zur Arbeit: Ankunft bis</span><input type="time" id="arriveOut" value="${esc(cfg.arrive.out)}"></div>
-      <div class="field"><span class="label">${ic('flag')}Nach Hause: Ankunft bis</span><input type="time" id="arriveBack" value="${esc(cfg.arrive.back)}"></div>
-      <div class="hint">Zeigt den spätesten Zug, mit dem du pünktlich ankommst. Leer lassen zum Ausschalten.</div>
+      <div class="field"><span class="label">${ic('flag')}Zur Arbeit: ankommen bis</span><input type="time" id="arriveOut" value="${esc(cfg.arrive.out)}"></div>
+      <div class="field"><span class="label">${ic('flag')}Nach Hause: ankommen bis</span><input type="time" id="arriveBack" value="${esc(cfg.arrive.back)}"></div>
+      <div class="hint">Daraus wird die späteste Abfahrt berechnet (Zug und Auto). Leer lassen zum Ausschalten.</div>
       <div class="field"><span class="label">Arbeitstage</span><div class="days" id="days">${DAYS.map(([n, l]) => `<button type="button" data-d="${n}" aria-pressed="${cfg.workdays.includes(n)}">${l}</button>`).join('')}</div></div>
-      ${sw('remDep', 'Abfahrtswecker', 'bell', cfg.remind.dep)}
-      <div class="field" id="remDepRow" ${cfg.remind.dep ? '' : 'hidden'}>${mSel('remDepMin', cfg.remind.depMin, [5, 10, 15, 20, 30], 'Min. vor dem Losgehen')}</div>
-      ${sw('remArr', 'Ankunftswecker', 'bell', cfg.remind.arr)}
-      <div class="field" id="remArrRow" ${cfg.remind.arr ? '' : 'hidden'}>${mSel('remArrMin', cfg.remind.arrMin, [3, 5, 10, 15], 'Min. vor der Ankunft')}</div>
-      <div class="hint">Wecker melden sich nur, solange die App geöffnet oder im Hintergrund aktiv ist. Der Ankunftswecker gilt für den zuletzt gestarteten Zug.</div>`;
+      <div class="field"><span class="label">${ic('bell')}Erinnerung vor dem Losgehen</span>${remSel('remMin', cfg.remind.dep ? cfg.remind.depMin : 0)}</div>
+      <button type="button" class="btn" id="remTest">${ic('bell')}Erinnerung testen</button>
+      <div class="hint">Die Erinnerung kommt vor dem Start der Fahrt, nicht erst vor der Ankunft. Sie funktioniert, solange die App geöffnet oder im Hintergrund aktiv ist; eine komplett beendete App kann sich ohne Server nicht selbst melden.</div>`;
     const auto = `
+      <div class="field"><span class="label">${ic('euro')}Verbrauch des Autos (Liter pro 100 km)</span><input type="text" inputmode="decimal" id="cons" value="${esc(String(cfg.cons).replace('.', ','))}" placeholder="z. B. 6,5" autocomplete="off">
+        <div class="hint">Daraus und aus dem günstigsten Spritpreis in der Nähe berechnet die App die Kosten der Fahrt.</div></div>
       <div class="field"><span class="label">${ic('fuel')}Kraftstoff</span>
         <div class="seg small" id="fuelSeg">${Object.entries(FUELS).map(([v, l]) => `<button data-v="${v}" aria-pressed="${cfg.fuel.type === v}">${l}</button>`).join('')}</div></div>
       <div class="field"><span class="label">Umkreis</span>${mSel('fuelRad', cfg.fuel.rad, [2, 3, 5, 10, 15], 'km')}</div>
@@ -1017,12 +1094,30 @@ button:disabled { opacity: .45; cursor: default; }
     const look = `
       <div class="seg small" id="themeSeg">${[['auto', 'Automatisch'], ['light', 'Hell'], ['dark', 'Dunkel']].map(([v, l]) => `<button data-v="${v}" aria-pressed="${cfg.theme === v}">${l}</button>`).join('')}</div>
       <button class="btn" id="resetCfg">Alles zurücksetzen</button>`;
+    const about = `
+      <div class="how">
+        <b>Als App installieren</b>
+        <ol>
+          <li><b>Android (Chrome):</b> Menü ⋮ → „App installieren“ oder „Zum Startbildschirm hinzufügen“.</li>
+          <li><b>iPhone / iPad (Safari):</b> Teilen-Symbol → „Zum Home-Bildschirm“.</li>
+          <li><b>Computer (Chrome / Edge):</b> Installieren-Symbol rechts in der Adressleiste.</li>
+        </ol>
+        <div class="hint" style="margin-top:8px">Danach startet Pendel wie eine normale App im Vollbild und zeigt auch ohne Netz die zuletzt geladenen Daten.</div>
+      </div>
+      <div class="hint">Daten: DB Echtzeit (IRIS) und Transitous für die Bahn, OSRM bzw. TomTom für das Auto, Tankerkönig (MTS-K) für Spritpreise, Open-Meteo für das Wetter.</div>
+      <div class="credit">Entwickelt von Fares Badawi 2026<br>mit Hilfe von Claude Code</div>`;
     $('sheet').innerHTML = `<h2>${ic('sliders')}Einstellungen</h2>
       ${grp('places', 'pin', 'Orte & Bahnhöfe', places)}
-      ${grp('times', 'clock', 'Zeiten & Wecker', times)}
+      ${grp('times', 'clock', 'Zeiten & Erinnerung', times)}
       ${grp('auto', 'fuel', 'Auto & Sprit', auto)}
       ${grp('look', 'palette', 'Darstellung', look)}
+      ${grp('about', 'info', 'Info & Installation', about)}
       <button class="btn" id="closeDlg">${ic('check')}Fertig</button>`;
+    $('sheet').querySelectorAll('.gh').forEach(h => h.onclick = () => {            // Ziehharmonika: eine Gruppe offen
+      const g = h.parentElement, was = g.classList.contains('open');
+      $('sheet').querySelectorAll('.grp').forEach(x => { x.classList.remove('open'); x.firstElementChild.setAttribute('aria-expanded', 'false'); });
+      if (!was) { g.classList.add('open'); h.setAttribute('aria-expanded', 'true'); setTimeout(() => g.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 360); }
+    });
 
     $('sheet').querySelectorAll('.field[data-k]').forEach(el => {
       const f = FIELDS.find(x => x.key === el.dataset.k);
@@ -1041,11 +1136,9 @@ button:disabled { opacity: .45; cursor: default; }
       cfg.workdays = onn ? [...cfg.workdays, d] : cfg.workdays.filter(x => x !== d);
       b.setAttribute('aria-pressed', onn); saveCfg(); changed = true;
     });
-    const askNotify = async () => { if ('Notification' in window && Notification.permission === 'default') { try { await Notification.requestPermission(); } catch {} } };
-    on('remDep', 'change', e => { cfg.remind.dep = e.target.checked; saveCfg(); $('remDepRow').hidden = !cfg.remind.dep; if (cfg.remind.dep) askNotify(); });
-    on('remDepMin', 'change', e => { cfg.remind.depMin = +e.target.value; saveCfg(); });
-    on('remArr', 'change', e => { cfg.remind.arr = e.target.checked; saveCfg(); $('remArrRow').hidden = !cfg.remind.arr; if (cfg.remind.arr) askNotify(); });
-    on('remArrMin', 'change', e => { cfg.remind.arrMin = +e.target.value; saveCfg(); });
+    on('remMin', 'change', e => { const m = +e.target.value; cfg.remind.dep = m > 0; if (m > 0) { cfg.remind.depMin = m; askNotify(); } saveCfg(); });
+    on('remTest', 'click', async () => { await askNotify(); showAlert('Erinnerung', 'So meldet sich Pendel kurz vor dem Losgehen.'); });
+    on('cons', 'change', e => { const v = parseFloat(e.target.value.replace(',', '.')); if (v > 0 && v < 40) { cfg.cons = v; saveCfg(); renderCompareAndCar(); } });
     $('fuelSeg').querySelectorAll('button').forEach(b => b.onclick = () => {
       cfg.fuel.type = b.dataset.v; saveCfg(); changed = true;
       $('fuelSeg').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b));
@@ -1068,14 +1161,15 @@ button:disabled { opacity: .45; cursor: default; }
   let wizStep = 0;
   function openWizard() {
     if ($('dlg').open) $('dlg').close();
-    Object.assign(draft, { home: cfg.home, work: cfg.work, homeStation: cfg.homeStation, workStation: cfg.workStation, arriveOut: cfg.arrive.out });
+    Object.assign(draft, { home: cfg.home, work: cfg.work, homeStation: cfg.homeStation, workStation: cfg.workStation,
+      arriveOut: cfg.arrive.out, arriveBack: cfg.arrive.back, remMin: cfg.remind.dep ? cfg.remind.depMin : 0, cons: cfg.cons });
     wizStep = 0;
     renderWizard();
     if (!$('wiz').open) $('wiz').showModal();
   }
   async function renderWizard() {
     const el = $('wizSheet');
-    const dots = `<div class="dots">${[0, 1, 2].map(i => `<span class="${i <= wizStep ? 'on' : ''}"></span>`).join('')}</div>`;
+    const dots = `<div class="dots">${[0, 1, 2, 3].map(i => `<span class="${i <= wizStep ? 'on' : ''}"></span>`).join('')}</div>`;
     if (wizStep === 0 || wizStep === 1) {
       const home = wizStep === 0, key = home ? 'home' : 'work', f = FIELDS[home ? 0 : 2];
       el.innerHTML = `${dots}
@@ -1089,13 +1183,33 @@ button:disabled { opacity: .45; cursor: default; }
       if (!home) $('wBack').onclick = () => { wizStep--; renderWizard(); };
       return;
     }
+    if (wizStep === 3) {
+      el.innerHTML = `${dots}
+        <h2>${ic('clock')}Deine Zeiten</h2>
+        <div class="hint">Alles optional. Daraus berechnet die App, wann du spätestens losmusst.</div>
+        <div class="field"><span class="label">${ic('flag')}Zur Arbeit: ankommen bis</span><input type="time" id="wArrOut" value="${esc(draft.arriveOut || '')}"></div>
+        <div class="field"><span class="label">${ic('flag')}Nach Hause: ankommen bis</span><input type="time" id="wArrBack" value="${esc(draft.arriveBack || '')}"></div>
+        <div class="field"><span class="label">${ic('bell')}Erinnerung vor dem Losgehen</span>${remSel('wRem', draft.remMin)}</div>
+        <div class="field"><span class="label">${ic('euro')}Verbrauch (Liter pro 100 km)</span><input type="text" inputmode="decimal" id="wCons" value="${esc(String(draft.cons).replace('.', ','))}" autocomplete="off"></div>
+        <div class="row2"><button class="btn" id="wBack">Zurück</button><button class="btn primary" id="wDone">Fertig</button></div>`;
+      $('wBack').onclick = () => { wizStep--; renderWizard(); };
+      $('wDone').onclick = () => {
+        const cons = parseFloat($('wCons').value.replace(',', '.')), m = +$('wRem').value;
+        cfg.home = draft.home; cfg.work = draft.work;
+        cfg.homeStation = draft.homeStation || null; cfg.workStation = draft.workStation || null;
+        cfg.arrive.out = $('wArrOut').value; cfg.arrive.back = $('wArrBack').value;
+        cfg.remind.dep = m > 0; if (m > 0) { cfg.remind.depMin = m; askNotify(); }
+        if (cons > 0 && cons < 40) cfg.cons = cons;
+        saveCfg(); $('wiz').close(); reset(); setMode(mode);
+      };
+      return;
+    }
     el.innerHTML = `${dots}
       <h2>${ic('train')}Deine Bahnhöfe</h2>
       <div class="hint">Den nächsten Bahnhof zu beiden Adressen suche ich selbst. Du kannst ihn ändern.</div>
       <div class="field" id="wsHome"><span class="label">${ic('home')}Bei Zuhause</span><div class="cur">Suche …</div><div class="slot"></div></div>
       <div class="field" id="wsWork"><span class="label">${ic('building')}Bei Arbeit</span><div class="cur">Suche …</div><div class="slot"></div></div>
-      <div class="field"><span class="label">${ic('flag')}Zur Arbeit: Ankunft bis (optional)</span><input type="time" id="wArr" value="${esc(draft.arriveOut || '')}"></div>
-      <div class="row2"><button class="btn" id="wBack">Zurück</button><button class="btn primary" id="wDone">Fertig</button></div>`;
+      <div class="row2"><button class="btn" id="wBack">Zurück</button><button class="btn primary" id="wDone">Weiter</button></div>`;
     $('wBack').onclick = () => { wizStep--; renderWizard(); };
     const boxes = { home: $('wsHome'), work: $('wsWork') };
     const defs = [['home', 'homeStation', 1], ['work', 'workStation', 3]];
@@ -1115,18 +1229,13 @@ button:disabled { opacity: .45; cursor: default; }
       };
     }
     fill();
-    $('wDone').onclick = () => {
-      cfg.home = draft.home; cfg.work = draft.work;
-      cfg.homeStation = draft.homeStation || null; cfg.workStation = draft.workStation || null;
-      cfg.arrive.out = $('wArr').value;
-      saveCfg(); $('wiz').close(); reset(); setMode(mode);
-    };
+    $('wDone').onclick = () => { wizStep++; renderWizard(); };
   }
   $('wiz').addEventListener('cancel', e => e.preventDefault());      // Einrichtung nicht per Esc überspringen
 
   const applyChanges = () => { if (changed) { changed = false; reset(); setMode(mode); } };
   $('dlg').addEventListener('close', applyChanges);
-  $('gear').onclick = () => openSettings('places');
+  $('gear').onclick = () => openSettings();                         // alle Gruppen zugeklappt
 
   /* ---------- Pull-to-Refresh ---------- */
   let y0 = null;
