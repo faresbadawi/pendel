@@ -41,20 +41,20 @@
 }
 * { box-sizing: border-box; margin: 0; }
 [hidden] { display: none !important; }
-html { background: var(--bg3); }
+html { background: var(--bg3); overflow-x: hidden; max-width: 100%; }
 body {
   min-height: 100dvh; color: var(--text);
   font: 16px/1.35 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  background: linear-gradient(170deg, var(--bg1) 0%, var(--bg2) 55%, var(--bg3) 100%) fixed;
+  background: radial-gradient(90% 45% at 90% -5%, rgba(255,255,255,.16), transparent 70%), linear-gradient(170deg, var(--bg1) 0%, var(--bg2) 55%, var(--bg3) 100%) fixed;
   padding: max(10px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right))
            max(10px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
-  overflow-x: hidden; overscroll-behavior-y: contain;
+  overflow-x: hidden; overscroll-behavior-y: contain; overscroll-behavior-x: none; touch-action: pan-y; max-width: 100vw;
   -webkit-tap-highlight-color: transparent;
 }
-main { display: flex; flex-direction: column; gap: 10px; max-width: 520px; margin: 0 auto; min-height: calc(100dvh - 20px); }
+main { display: flex; flex-direction: column; gap: 12px; min-width: 0; max-width: 520px; margin: 0 auto; min-height: calc(100dvh - 20px); }
 .pane { display: flex; flex-direction: column; gap: 10px; }
 .card {
-  background: var(--glass); border: 1px solid var(--glass-border); border-radius: 22px;
+  background: linear-gradient(160deg, var(--glass-strong), var(--glass)); border: 1px solid var(--glass-border); border-radius: 22px;
   padding: 14px 16px; -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
   box-shadow: 0 6px 24px rgba(0,0,0,.18);
 }
@@ -71,38 +71,35 @@ a { color: inherit; }
 .btn svg.brand { width: 24px; height: 24px; flex: none; }
 
 /* Kopf */
-.hd { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 4px 4px 2px; }
+.hd { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; padding: 2px 0 0; }
 .time { min-width: 0; }
-.clock { font-size: 60px; font-weight: 300; font-variant-numeric: tabular-nums; line-height: .95; letter-spacing: -.045em; }
-.date { margin-top: 6px; font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
-.wx { display: flex; flex-direction: column; align-items: stretch; gap: 6px; padding: 10px 14px 9px 12px; border-radius: 22px; background: var(--glass); border: 1px solid var(--glass-border); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); box-shadow: 0 6px 24px rgba(0,0,0,.14); flex: none; }
-.wx .wtop { display: flex; align-items: center; gap: 12px; }
-.wx .wp { display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 700; color: var(--muted); max-width: 190px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.wx .wp .ic { width: 14px; height: 14px; }
-.wx .wm { display: flex; align-items: center; gap: 10px; }
-.wx .wm .ic { width: 44px; height: 44px; stroke-width: 1.4; }
-.wx .t { font-size: 34px; font-weight: 700; line-height: 1; letter-spacing: -.03em; }
-.wx .c { font-size: 13px; color: var(--muted); margin-top: 3px; font-weight: 600; }
-.wx .wr { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 6px 9px; border-radius: 16px; background: var(--glass); font-size: 10px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); line-height: 1.15; }
-.wx .wr .ic { width: 18px; height: 18px; }
-.wx .wr b { color: var(--text); font-size: 16px; font-variant-numeric: tabular-nums; letter-spacing: 0; }
-.wx .wr.wet { background: #38bdf8; color: #04243a; }
-.wx .wr.wet b { color: #04243a; }
+.clock { font-size: 54px; font-weight: 300; font-variant-numeric: tabular-nums; line-height: .95; letter-spacing: -.045em; }
+.date { margin-top: 5px; font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.tools { display: flex; gap: 2px; margin-right: -6px; }
+.wx { display: flex; flex-wrap: wrap; align-items: center; row-gap: 4px; font-size: 14px; font-weight: 600; margin-top: -2px; }
+.wx > span { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.wx > span + span::before { content: ""; width: 3px; height: 3px; border-radius: 50%; background: currentColor; opacity: .5; margin: 0 10px 0 4px; }
+.wx .ic { width: 20px; height: 20px; stroke-width: 1.6; }
+.wx b { font-size: 17px; font-weight: 700; }
+.wx .mut { color: var(--muted); font-weight: 600; }
+.wx .wet { color: #7dd3fc; font-weight: 700; }
 .ctl { display: flex; gap: 8px; align-items: center; }
 .ctl .seg { flex: 1; }
-.icon-btn { position: relative; width: 46px; min-height: 52px; border-radius: 16px; background: var(--glass); border: 1px solid var(--glass-border); padding: 0; flex: none; display: grid; place-items: center; }
+.ctl { margin-top: 2px; }
+.icon-btn { position: relative; width: 42px; min-height: 42px; border-radius: 14px; background: transparent; border: 0; padding: 0; flex: none; display: grid; place-items: center; color: var(--text); }
+.icon-btn:active { background: var(--glass); }
 .icon-btn .ic { width: 22px; height: 22px; vertical-align: 0; }
-.icon-btn.spin .ic { animation: spin .8s linear infinite; }
+.spin .ic { animation: spin .8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .seg { display: flex; padding: 3px; border-radius: 16px; background: var(--glass); border: 1px solid var(--glass-border); }
-.seg button { flex: 1; border-radius: 13px; background: transparent; font-weight: 700; min-height: 46px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.seg button { flex: 1; border-radius: 13px; background: transparent; font-weight: 700; min-height: 42px; transition: background .2s, color .2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
 .seg button[aria-pressed="true"] { background: #fff; color: #17407f; }
-.seg.small button { min-height: 40px; font-size: 14px; font-weight: 600; }
+.seg.small button { min-height: 38px; font-size: 14px; font-weight: 600; }
 #ptr { text-align: center; color: var(--muted); font-size: 13px; height: 0; overflow: hidden; transition: height .15s; }
 
 /* Zug */
-.badge { position: absolute; top: 2px; right: 2px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 99px; background: var(--bad); color: #fff; font-size: 11px; font-weight: 800; line-height: 18px; text-align: center; box-shadow: 0 0 0 2px rgba(0,0,0,.25); }
-.icon-btn.hot { background: var(--warn); color: var(--on-warn); border-color: transparent; }
+.badge { position: absolute; top: 1px; right: 0; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 99px; background: var(--bad); color: #fff; font-size: 10px; font-weight: 800; line-height: 17px; text-align: center; box-shadow: 0 0 0 2px rgba(0,0,0,.25); }
+.icon-btn.hot { background: var(--warn); color: var(--on-warn); }
 .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .tiles div { background: var(--glass); border-radius: 16px; padding: 10px 12px; }
 .tiles b { display: block; font-size: 24px; font-variant-numeric: tabular-nums; }
@@ -131,7 +128,7 @@ a { color: inherit; }
 .live::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #4ade80; box-shadow: 0 0 0 3px rgba(74,222,128,.25); }
 a.tap { display: block; text-decoration: none; color: inherit; }
 .row { display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; margin-top: 6px; }
-.big { font-size: 64px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+.big { font-size: 58px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
 .big em { font-style: normal; font-size: 28px; font-weight: 600; opacity: .7; margin-left: 6px; }
 .big em.old { text-decoration: line-through; text-decoration-thickness: 2px; }
 .pill { display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px; border-radius: 999px; font-weight: 700; font-size: 15px; white-space: nowrap; }
@@ -139,10 +136,11 @@ a.tap { display: block; text-decoration: none; color: inherit; }
 .pill.warn { background: var(--warn); color: var(--on-warn); }
 .pill.bad { background: var(--bad); color: #fff; }
 .facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
+.facts div { text-align: left; }
 .facts div { background: var(--glass); border-radius: 14px; padding: 8px 10px; }
 .facts b { display: block; font-size: 21px; font-variant-numeric: tabular-nums; }
 .facts span { font-size: 12px; color: var(--muted); }
-.line { margin-top: 10px; color: var(--muted); font-size: 14px; }
+.line { margin-top: 10px; color: var(--muted); font-size: 13px; line-height: 1.4; }
 .line b { color: var(--text); }
 .note { display: flex; gap: 8px; align-items: flex-start; margin-top: 8px; padding: 8px 10px; border-radius: 12px; font-size: 14px; font-weight: 600; background: var(--glass); }
 .note .ic { margin-top: 2px; }
@@ -164,10 +162,11 @@ a.item { text-decoration: none; display: grid; grid-template-columns: auto 1fr a
 
 /* Auto */
 .car { display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; margin-top: 6px; }
-.car .big { font-size: 56px; }
+.car .big { font-size: 52px; }
 .car .km { font-size: 24px; font-weight: 700; text-align: right; }
 .nav { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
 .linkbtn { background: none; text-decoration: underline; min-height: 36px; padding: 0; color: var(--muted); font-size: 14px; text-align: left; }
+.line .linkbtn { display: inline; min-height: 0; font-size: inherit; }
 .fuel .st { display: grid; grid-template-columns: auto 1fr auto; gap: 2px 12px; align-items: center; padding: 10px 12px; border-radius: 16px; background: var(--glass); text-decoration: none; min-height: 56px; }
 .fuel .st:first-child { background: var(--glass-strong); }
 .price { font-size: 28px; font-weight: 800; font-variant-numeric: tabular-nums; }
@@ -180,7 +179,9 @@ a.item { text-decoration: none; display: grid; grid-template-columns: auto 1fr a
 .err { display: flex; gap: 8px; align-items: flex-start; background: rgba(220,38,38,.9); border-radius: 14px; padding: 10px 12px; font-weight: 600; font-size: 14px; margin-top: 8px; color: #fff; }
 .err .ic { margin-top: 2px; }
 .skel { color: var(--muted); padding: 8px 0; }
-footer { text-align: center; color: var(--muted); font-size: 12px; padding: 2px 0 0; margin-top: auto; }
+footer { display: flex; align-items: center; justify-content: center; gap: 4px; color: var(--muted); font-size: 12px; padding: 0; margin-top: auto; }
+footer .icon-btn { width: 34px; min-height: 34px; color: var(--muted); }
+footer .icon-btn .ic { width: 16px; height: 16px; }
 
 /* Vergleich (unten) */
 .cmp { position: sticky; bottom: max(6px, env(safe-area-inset-bottom)); display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 8px; border-radius: 999px; background: var(--glass-strong); border: 1px solid var(--glass-border); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); box-shadow: 0 6px 24px rgba(0,0,0,.25); }
@@ -253,9 +254,11 @@ button:disabled { opacity: .45; cursor: default; }
   body { padding: max(24px, env(safe-area-inset-top)) max(32px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(32px, env(safe-area-inset-left)); }
   main { max-width: 1120px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-content: start; align-items: start; min-height: calc(100dvh - 44px); }
   main > .hd, main > #alert, main > #ptr, main > footer, main > .cmp { grid-column: 1 / -1; }
-  main > #dirSeg { grid-column: 1; grid-row: 2; }
-  main > .ctl { grid-column: 2; grid-row: 2; justify-content: flex-end; }
-  .clock { font-size: clamp(64px, 7vw, 92px); }
+  main > #wx { grid-column: 1 / -1; }
+  main > #dirSeg { grid-column: 1 / -1; justify-self: start; width: min(100%, 420px); }
+  .clock { font-size: clamp(60px, 7vw, 88px); }
+  .ctl { display: none; }
+  .wx { font-size: 16px; }
   .big { font-size: 72px; }
   .car .big { font-size: 64px; }
   .cmp { max-width: 560px; justify-self: center; width: 100%; }
@@ -264,13 +267,12 @@ button:disabled { opacity: .45; cursor: default; }
 }
 /* Querformat auf dem Handy: weniger Höhe verbrauchen */
 @media (max-height: 520px) and (max-width: 759px) {
-  .clock { font-size: 44px; }
+  .clock { font-size: 40px; }
   .big { font-size: 48px; }
   .hd { padding-top: 0; }
 }
 /* kleine Handys */
-@media (max-width: 459px) { .clock { font-size: 52px; } }
-@media (max-width: 359px) { .big { font-size: 52px; } .clock { font-size: 48px; } .cmp .c { padding: 6px 8px; font-size: 13px; } }
+@media (max-width: 359px) { .big { font-size: 48px; } .clock { font-size: 44px; } .cmp .c { padding: 6px 8px; font-size: 13px; } }
 </style>
 </head>
 <body>
@@ -280,16 +282,17 @@ button:disabled { opacity: .45; cursor: default; }
       <div class="clock" id="clock">--:--</div>
       <div class="date" id="date"></div>
     </div>
-    <div class="wx" id="wx" hidden></div>
+    <div class="tools">
+      <button class="icon-btn" id="infoBtn" aria-label="Störungen"></button>
+      <button class="icon-btn" id="statBtn" aria-label="Wochenübersicht"></button>
+      <button class="icon-btn" id="gear" aria-label="Einstellungen"></button>
+    </div>
   </header>
+  <div class="wx" id="wx" hidden></div>
   <div class="ctl">
     <div class="seg" id="modeSeg" role="group" aria-label="Verkehrsmittel"></div>
-    <button class="icon-btn" id="refresh" aria-label="Aktualisieren"></button>
-    <button class="icon-btn" id="statBtn" aria-label="Wochenübersicht"></button>
-    <button class="icon-btn" id="infoBtn" aria-label="Störungen"></button>
-    <button class="icon-btn" id="gear" aria-label="Einstellungen"></button>
   </div>
-  <section class="card banner" id="alert" hidden></section>
+    <section class="card banner" id="alert" hidden></section>
   <div class="seg small" id="dirSeg" role="group" aria-label="Richtung"></div>
   <div id="ptr">Loslassen zum Aktualisieren …</div>
 
@@ -303,7 +306,7 @@ button:disabled { opacity: .45; cursor: default; }
     <section class="card fuel" id="fuel"></section>
   </div>
 
-  <footer id="stand">Stand: –</footer>
+  <footer><span id="stand">Stand: –</span><button class="icon-btn" id="refresh" aria-label="Aktualisieren"></button></footer>
   <div class="cmp" id="cmp" hidden></div>
 </main>
 
@@ -366,7 +369,7 @@ button:disabled { opacity: .45; cursor: default; }
   };
   const ic = (n, cls = '') => `<svg class="ic ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n]}</svg>`;
   const ICON_GMAPS = `<svg class="brand" viewBox="0 0 24 24" aria-hidden="true"><path fill="#34a853" d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7z"/><path fill="#ea4335" d="M12 2a7 7 0 0 0-6.2 3.8L12 11z"/><path fill="#fbbc04" d="M5.8 5.8A7 7 0 0 0 5 9c0 1.6.7 3.5 1.7 5.3L12 11z"/><path fill="#4285f4" d="M12 2v9l6.2-5.2A7 7 0 0 0 12 2z"/><circle cx="12" cy="9" r="2.6" fill="#fff"/></svg>`;
-  const ICON_WAZE = `<svg class="brand" viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="wzg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4fd8ff"/><stop offset="1" stop-color="#0a9bd6"/></linearGradient></defs><rect x="1" y="1" width="22" height="22" rx="7" fill="url(#wzg)"/><circle cx="8" cy="17.5" r="1.9" fill="#fff"/><path fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M8 14.5V11a3.5 3.5 0 0 1 3.5-3.5H16M13.8 5l2.7 2.5-2.7 2.5"/></svg>`;
+  const ICON_WAZE = `<svg class="brand" viewBox="0 0 24 24" aria-hidden="true"><path fill="#33ccff" d="M12 2.5c-4.6 0-8.3 3.4-8.3 7.6 0 1.6.5 3 1.4 4.2-.1 1.2-.5 2.3-1.2 3.2 1.4.1 2.7-.3 3.7-1 1.3.6 2.8.9 4.4.9 4.6 0 8.3-3.4 8.3-7.6S16.6 2.5 12 2.5z"/><circle cx="9.2" cy="9.4" r="1.2" fill="#1a1a1a"/><circle cx="14.8" cy="9.4" r="1.2" fill="#1a1a1a"/><path fill="none" stroke="#1a1a1a" stroke-width="1.3" stroke-linecap="round" d="M9 12.6c1.7 1.6 4.3 1.6 6 0"/><circle cx="8" cy="19.8" r="1.7" fill="#1a1a1a"/><circle cx="15.5" cy="19.8" r="1.7" fill="#1a1a1a"/></svg>`;
 
   /* ---------- Einstellungen ---------- */
   const defaultCfg = () => ({
@@ -749,7 +752,7 @@ button:disabled { opacity: .45; cursor: default; }
         : cfg.fuel.key ? 'Kosten erscheinen, sobald die Spritpreise geladen sind.' : `Für die Kosten wird ein Tankerkönig-Schlüssel gebraucht. <button class="linkbtn" id="toFuelKey">Eintragen</button>`}</div>` : ''}
       ${c.live
         ? `<div class="line"><span class="pill ${d}">${c.delay >= 1 ? '+' + c.delay + ' min Verkehr' : 'freie Fahrt'}</span> Live-Verkehr (TomTom)</div>`
-        : `<div class="line">Ohne Live-Verkehr berechnet. <button class="linkbtn" id="toSettings">TomTom-Schlüssel eintragen</button></div>`}
+        : `<div class="line">Ohne Live-Verkehr · <button class="linkbtn" id="toSettings">TomTom-Schlüssel eintragen</button></div>`}
       <div class="nav">
         <a class="btn" href="${gm}" target="_blank" rel="noopener">${ICON_GMAPS}Google Maps</a>
         <a class="btn" href="${wz}" target="_blank" rel="noopener">${ICON_WAZE}Waze</a>
@@ -846,9 +849,9 @@ button:disabled { opacity: .45; cursor: default; }
     const [icon, txt] = WMO(wx.weather_code);
     el.hidden = false;
     const rain = wx.rain;
-    el.innerHTML = `<div class="wtop"><div class="wm">${ic(icon)}<div><div class="t">${Math.round(wx.temperature_2m)}°</div><div class="c">${txt}</div></div></div>`
-      + (rain == null ? '' : `<div class="wr ${rain >= 50 ? 'wet' : ''}" title="Regenwahrscheinlichkeit in den nächsten 6 Stunden">${ic('drop')}<b>${rain} %</b>Regen</div>`)
-      + `</div>` + (wx.place ? `<div class="wp" title="${wx.gps ? 'Dein Standort' : 'Zuhause'}">${ic(wx.gps ? 'locate' : 'pin')}<span>${esc(wx.place)}</span></div>` : '');
+    el.innerHTML = `<span>${ic(icon)}<b>${Math.round(wx.temperature_2m)}°</b><span class="mut">${txt}</span></span>`
+      + (rain == null ? '' : `<span class="${rain >= 50 ? 'wet' : 'mut'}" title="Regenwahrscheinlichkeit in den nächsten 6 Stunden">${ic('drop')}${rain} % Regen</span>`)
+      + (wx.place ? `<span class="mut" title="${wx.gps ? 'Dein Standort' : 'Zuhause'}">${ic(wx.gps ? 'locate' : 'pin')}${esc(wx.place)}</span>` : '');
   }
   const placeCache = {};
   async function placeName(lat, lon) {
