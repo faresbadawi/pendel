@@ -1,7 +1,7 @@
 // Offline-Hülle: eigene Dateien zuerst aus dem Netz (Updates kommen sofort), ohne Netz aus dem Zwischenspeicher.
 // Fahrplan-/Wetter-APIs (andere Domains) laufen unverändert am Service Worker vorbei.
-const CACHE = 'pendel-shell-v2';
-const SHELL = ['./', 'index.html', 'manifest.json', 'sw.js', 'icon-192.png', 'icon-512.png'];
+const CACHE = 'pendel-shell-v3';
+const SHELL = ['./', 'index.html', 'manifest.json', 'sw.js', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'apple-touch-icon.png', 'favicon-48.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
