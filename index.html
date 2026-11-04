@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Pendel">
 <meta name="application-name" content="Pendel">
-<meta name="description" content="Pendel-Assistent Vöhrum ↔ Hannover Hbf">
+<meta name="description" content="Pendel-Assistent Vöhrum ↔ Hannover">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -25,325 +25,973 @@
   --on-warn: #1f1300;
 }
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --bg1: #1a3d7a; --bg2: #0f2551; --bg3: #060f24;
     --glass: rgba(255,255,255,.08); --glass-strong: rgba(255,255,255,.16);
     --glass-border: rgba(255,255,255,.16);
     --muted: rgba(255,255,255,.7);
   }
 }
+:root[data-theme="dark"] {
+  --bg1: #1a3d7a; --bg2: #0f2551; --bg3: #060f24;
+  --glass: rgba(255,255,255,.08); --glass-strong: rgba(255,255,255,.16);
+  --glass-border: rgba(255,255,255,.16);
+  --muted: rgba(255,255,255,.7);
+}
 * { box-sizing: border-box; margin: 0; }
+[hidden] { display: none !important; }
 html { background: var(--bg3); }
 body {
   min-height: 100dvh; color: var(--text);
   font: 16px/1.35 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   background: linear-gradient(170deg, var(--bg1) 0%, var(--bg2) 55%, var(--bg3) 100%) fixed;
   padding: max(10px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right))
-           max(20px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+           max(10px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
   overflow-x: hidden; overscroll-behavior-y: contain;
   -webkit-tap-highlight-color: transparent;
 }
-main { display: flex; flex-direction: column; gap: 10px; max-width: 520px; margin: 0 auto; }
+main { display: flex; flex-direction: column; gap: 10px; max-width: 520px; margin: 0 auto; min-height: calc(100dvh - 20px); }
+.pane { display: flex; flex-direction: column; gap: 10px; }
 .card {
   background: var(--glass); border: 1px solid var(--glass-border); border-radius: 22px;
   padding: 14px 16px; -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
   box-shadow: 0 6px 24px rgba(0,0,0,.18);
 }
-button { font: inherit; color: inherit; border: 0; cursor: pointer; min-height: 44px; }
-a.btn, button.btn {
+button, input, select { font: inherit; color: inherit; }
+button { border: 0; cursor: pointer; min-height: 44px; }
+a { color: inherit; }
+.ic { width: 1.25em; height: 1.25em; flex: none; vertical-align: -.22em; }
+.btn {
   display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px;
-  padding: 0 16px; border-radius: 14px; background: var(--glass-strong);
+  padding: 0 12px; border-radius: 14px; background: var(--glass-strong);
   border: 1px solid var(--glass-border); color: var(--text); text-decoration: none; font-weight: 600;
 }
-a.btn:active, button:active { filter: brightness(1.15); }
+.btn:active, button:active, a.tap:active, a.item:active { filter: brightness(1.15); }
+.btn svg.brand { width: 24px; height: 24px; flex: none; }
 
-/* Kopfzeile */
-.bar { display: flex; gap: 8px; align-items: center; }
-.seg { flex: 1; display: flex; padding: 3px; border-radius: 16px; background: var(--glass); border: 1px solid var(--glass-border); }
-.seg button { flex: 1; border-radius: 13px; background: transparent; font-weight: 600; min-height: 44px; }
-.seg button[aria-pressed="true"] { background: #fff; color: #17407f; }
-.refresh { width: 48px; min-height: 48px; border-radius: 16px; background: var(--glass); border: 1px solid var(--glass-border); font-size: 22px; padding: 0; }
-.refresh.spin span { display: inline-block; animation: spin .8s linear infinite; }
+/* Kopf */
+.hd { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 4px 4px 2px; }
+.time { min-width: 0; }
+.clock { font-size: 60px; font-weight: 300; font-variant-numeric: tabular-nums; line-height: .95; letter-spacing: -.045em; }
+.date { margin-top: 6px; font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+.wx { display: flex; align-items: center; gap: 10px; padding: 10px 14px 10px 12px; border-radius: 20px; background: var(--glass); border: 1px solid var(--glass-border); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); box-shadow: 0 6px 24px rgba(0,0,0,.14); min-width: 0; }
+.wx .ic { width: 38px; height: 38px; stroke-width: 1.5; }
+.wx .t { font-size: 30px; font-weight: 700; line-height: 1; letter-spacing: -.02em; }
+.wx .c { font-size: 12px; color: var(--muted); margin-top: 3px; font-weight: 600; }
+.ctl { display: flex; gap: 8px; align-items: center; }
+.ctl .seg { flex: 1; }
+.icon-btn { width: 52px; min-height: 52px; border-radius: 16px; background: var(--glass); border: 1px solid var(--glass-border); padding: 0; flex: none; display: grid; place-items: center; }
+.icon-btn .ic { width: 22px; height: 22px; vertical-align: 0; }
+.icon-btn.spin .ic { animation: spin .8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
+.seg { display: flex; padding: 3px; border-radius: 16px; background: var(--glass); border: 1px solid var(--glass-border); }
+.seg button { flex: 1; border-radius: 13px; background: transparent; font-weight: 700; min-height: 46px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.seg button[aria-pressed="true"] { background: #fff; color: #17407f; }
+.seg.small button { min-height: 40px; font-size: 14px; font-weight: 600; }
 #ptr { text-align: center; color: var(--muted); font-size: 13px; height: 0; overflow: hidden; transition: height .15s; }
 
-/* Hero */
-.label { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; }
-.hero .row { display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; }
+/* Zug */
+.label { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 700; display: flex; align-items: center; gap: 6px; }
+.label .grow { flex: 1; }
+.dbchip { display: inline-flex; align-items: center; gap: 3px; padding: 2px 8px; border-radius: 999px; background: var(--glass-strong); color: var(--text); font-size: 11px; letter-spacing: .04em; font-weight: 800; }
+.dbchip .ic { width: 12px; height: 12px; }
+.live { display: inline-flex; align-items: center; gap: 5px; text-transform: none; letter-spacing: 0; font-weight: 600; }
+.live::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #4ade80; box-shadow: 0 0 0 3px rgba(74,222,128,.25); }
+a.tap { display: block; text-decoration: none; color: inherit; }
+.row { display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; margin-top: 6px; }
 .big { font-size: 64px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
 .big em { font-style: normal; font-size: 28px; font-weight: 600; opacity: .7; margin-left: 6px; }
 .big em.old { text-decoration: line-through; text-decoration-thickness: 2px; }
-.pill { display: inline-block; padding: 6px 12px; border-radius: 999px; font-weight: 700; font-size: 15px; white-space: nowrap; }
+.pill { display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px; border-radius: 999px; font-weight: 700; font-size: 15px; white-space: nowrap; }
 .pill.ok { background: var(--ok); color: #fff; }
 .pill.warn { background: var(--warn); color: var(--on-warn); }
 .pill.bad { background: var(--bad); color: #fff; }
 .facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
 .facts div { background: var(--glass); border-radius: 14px; padding: 8px 10px; }
-.facts b { display: block; font-size: 22px; font-variant-numeric: tabular-nums; }
+.facts b { display: block; font-size: 21px; font-variant-numeric: tabular-nums; }
 .facts span { font-size: 12px; color: var(--muted); }
-.line { margin-top: 8px; color: var(--muted); font-size: 14px; }
+.line { margin-top: 10px; color: var(--muted); font-size: 14px; }
+.line b { color: var(--text); }
+.note { display: flex; gap: 8px; align-items: flex-start; margin-top: 8px; padding: 8px 10px; border-radius: 12px; font-size: 14px; font-weight: 600; background: var(--glass); }
+.note .ic { margin-top: 2px; }
+.note.warn { background: var(--warn); color: var(--on-warn); }
+.note.bad { background: var(--bad); color: #fff; }
+.banner { display: flex; gap: 12px; align-items: center; background: var(--warn); color: var(--on-warn); border-color: transparent; }
+.banner .ic { width: 28px; height: 28px; }
+.banner b { display: block; font-size: 17px; }
+.banner button { margin-left: auto; background: rgba(0,0,0,.12); border-radius: 12px; padding: 0 14px; font-weight: 700; }
 
-/* Empfehlung */
-.rec { display: flex; gap: 12px; align-items: center; }
-.rec .ico { font-size: 32px; }
-.rec b { font-size: 18px; display: block; }
-.rec small { color: var(--muted); font-size: 14px; }
-
-/* Liste */
 .list { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
-.item { display: grid; grid-template-columns: auto 1fr auto; gap: 4px 12px; align-items: center; padding: 10px 12px; min-height: 56px; border-radius: 16px; background: var(--glass); border-left: 6px solid var(--ok); }
+a.item { text-decoration: none; display: grid; grid-template-columns: auto 1fr auto; gap: 4px 12px; align-items: center; padding: 10px 12px; min-height: 56px; border-radius: 16px; background: var(--glass); border-left: 6px solid var(--ok); }
 .item.warn { border-left-color: var(--warn); } .item.bad { border-left-color: var(--bad); }
 .item .t { font-size: 26px; font-weight: 800; font-variant-numeric: tabular-nums; }
 .item .m { font-size: 13px; color: var(--muted); }
 .item .m b { color: var(--text); }
+.dl .row { align-items: center; }
+.dl .big { font-size: 40px; }
 
 /* Auto */
-.car { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
-.car .big { font-size: 48px; }
-.car .km { font-size: 24px; font-weight: 700; }
-.car + a { margin-top: 12px; }
+.car { display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; margin-top: 6px; }
+.car .big { font-size: 56px; }
+.car .km { font-size: 24px; font-weight: 700; text-align: right; }
+.nav { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+.linkbtn { background: none; text-decoration: underline; min-height: 36px; padding: 0; color: var(--muted); font-size: 14px; text-align: left; }
+.fuel .st { display: grid; grid-template-columns: auto 1fr auto; gap: 2px 12px; align-items: center; padding: 10px 12px; border-radius: 16px; background: var(--glass); text-decoration: none; min-height: 56px; }
+.fuel .st:first-child { background: var(--glass-strong); }
+.price { font-size: 28px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.price sup { font-size: .55em; vertical-align: .45em; margin-left: 1px; }
+.fuel .m { font-size: 13px; color: var(--muted); }
+.fuel .m b { color: var(--text); font-size: 14px; }
+.fuel .d { font-size: 14px; font-weight: 700; text-align: right; }
+.tag { display: inline-block; padding: 1px 8px; border-radius: 999px; background: var(--ok); color: #fff; font-size: 11px; font-weight: 700; margin-left: 6px; text-transform: none; letter-spacing: 0; }
 
-/* Wetter */
-.wx { display: flex; align-items: center; gap: 14px; }
-.wx .clock { font-size: 34px; font-weight: 800; font-variant-numeric: tabular-nums; }
-.wx .ico { font-size: 34px; }
-.wx .temp { font-size: 28px; font-weight: 700; }
-.wx small { color: var(--muted); display: block; font-size: 13px; }
-.wx .sp { flex: 1; }
-
-.err { background: rgba(220,38,38,.9); border-radius: 14px; padding: 10px 12px; font-weight: 600; font-size: 14px; margin-top: 8px; }
+.err { display: flex; gap: 8px; align-items: flex-start; background: rgba(220,38,38,.9); border-radius: 14px; padding: 10px 12px; font-weight: 600; font-size: 14px; margin-top: 8px; color: #fff; }
+.err .ic { margin-top: 2px; }
 .skel { color: var(--muted); padding: 8px 0; }
-footer { text-align: center; color: var(--muted); font-size: 13px; padding-top: 4px; }
+footer { text-align: center; color: var(--muted); font-size: 12px; padding: 2px 0 0; margin-top: auto; }
+
+/* Vergleich (unten) */
+.cmp { position: sticky; bottom: max(6px, env(safe-area-inset-bottom)); display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 8px; border-radius: 999px; background: var(--glass-strong); border: 1px solid var(--glass-border); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); box-shadow: 0 6px 24px rgba(0,0,0,.25); }
+.cmp .c { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; font-weight: 700; font-size: 14px; white-space: nowrap; }
+.cmp .c .ic { width: 18px; height: 18px; }
+.cmp .c.ok { background: var(--ok); color: #fff; }
+.cmp .c.bad { background: var(--bad); color: #fff; }
+.cmp .c.warn { background: var(--warn); color: var(--on-warn); }
+.cmp .txt { flex: 1; text-align: center; font-size: 13px; font-weight: 600; line-height: 1.2; }
+
+/* Einstellungen */
+dialog { width: min(100vw - 16px, 520px); max-height: calc(100dvh - 16px); margin: auto; padding: 0; border: 1px solid var(--glass-border); border-radius: 24px; color: var(--text); background: linear-gradient(170deg, var(--bg2), var(--bg3)); overflow: auto; }
+dialog::backdrop { background: rgba(0,0,0,.55); }
+.sheet { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.sheet h2 { font-size: 22px; display: flex; align-items: center; gap: 8px; }
+.grp { border: 1px solid var(--glass-border); border-radius: 18px; background: var(--glass); }
+.grp > summary { list-style: none; min-height: 52px; padding: 0 14px; display: flex; align-items: center; gap: 10px; font-weight: 700; cursor: pointer; }
+.grp > summary::-webkit-details-marker { display: none; }
+.grp > summary::after { content: ""; margin-left: auto; width: 9px; height: 9px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg); transition: transform .15s; opacity: .7; }
+.grp[open] > summary::after { transform: rotate(225deg); }
+.grp .body { padding: 2px 14px 14px; display: flex; flex-direction: column; gap: 14px; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field .cur { font-weight: 700; font-size: 15px; word-break: break-word; }
+.sheet input[type="search"], .sheet input[type="text"], .sheet input[type="time"], .sheet select { width: 100%; height: 48px; padding: 0 14px; border-radius: 14px; border: 1px solid var(--glass-border); background: rgba(255,255,255,.14); }
+.sheet select option { color: #111; }
+.sheet input::placeholder { color: var(--muted); }
+.srow { display: flex; gap: 8px; }
+.srow button { padding: 0 16px; border-radius: 14px; background: #fff; color: #17407f; font-weight: 700; min-height: 48px; }
+.res { display: flex; flex-direction: column; gap: 6px; }
+.res button { text-align: left; padding: 10px 12px; border-radius: 12px; background: var(--glass-strong); border: 1px solid var(--glass-border); font-size: 14px; }
+.hint { font-size: 13px; color: var(--muted); }
+.sw { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px; font-weight: 600; }
+.sw input { appearance: none; -webkit-appearance: none; width: 52px; height: 30px; border-radius: 999px; background: rgba(255,255,255,.28); position: relative; cursor: pointer; flex: none; transition: background .15s; }
+.sw input::after { content: ""; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; transition: transform .15s; }
+.sw input:checked { background: var(--ok); }
+.sw input:checked::after { transform: translateX(22px); }
+.days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.days button { min-height: 44px; border-radius: 12px; background: var(--glass); border: 1px solid var(--glass-border); font-weight: 700; font-size: 14px; }
+.days button[aria-pressed="true"] { background: #fff; color: #17407f; }
 </style>
 </head>
 <body>
 <main>
-  <div class="bar">
-    <div class="seg" role="group" aria-label="Richtung">
-      <button id="dirOut" aria-pressed="true">Hinfahrt</button>
-      <button id="dirBack" aria-pressed="false">Rückfahrt</button>
+  <header class="hd">
+    <div class="time">
+      <div class="clock" id="clock">--:--</div>
+      <div class="date" id="date"></div>
     </div>
-    <button class="refresh" id="refresh" aria-label="Aktualisieren"><span>⟳</span></button>
+    <div class="wx" id="wx" hidden></div>
+  </header>
+  <div class="ctl">
+    <div class="seg" id="modeSeg" role="group" aria-label="Verkehrsmittel"></div>
+    <button class="icon-btn" id="refresh" aria-label="Aktualisieren"></button>
+    <button class="icon-btn" id="gear" aria-label="Einstellungen"></button>
   </div>
+  <section class="card banner" id="alert" hidden></section>
+  <div class="seg small" id="dirSeg" role="group" aria-label="Richtung"></div>
   <div id="ptr">Loslassen zum Aktualisieren …</div>
 
-  <section class="card hero" id="hero"><div class="skel">Lade Verbindungen …</div></section>
-  <section class="card" id="recCard" hidden></section>
-  <section class="card" id="next"><div class="label">Weitere Verbindungen</div><div class="list"></div></section>
-  <section class="card" id="car"><div class="label">Auto</div><div class="skel">Lade Fahrzeit …</div></section>
-  <section class="card wx" id="wx"><div class="skel">Lade Wetter …</div></section>
+  <div class="pane" id="paneTrain">
+    <section class="card hero" id="hero"><div class="skel">Lade Verbindungen …</div></section>
+    <section class="card dl" id="dl" hidden></section>
+    <section class="card" id="next" hidden><div class="label">Weitere Verbindungen</div><div class="list"></div></section>
+  </div>
+  <div class="pane" id="paneCar" hidden>
+    <section class="card" id="car"><div class="skel">Lade Fahrzeit …</div></section>
+    <section class="card fuel" id="fuel"></section>
+  </div>
+
   <footer id="stand">Stand: –</footer>
+  <div class="cmp" id="cmp" hidden></div>
 </main>
+
+<dialog id="dlg">
+  <div class="sheet" id="sheet"></div>
+</dialog>
 
 <script>
 (() => {
   'use strict';
   const q = new URLSearchParams(location.search);
-  const DB = (q.get('api') || 'https://api.transitous.org').replace(/\/$/, '');   // Transitous (MOTIS), CORS-fähig
+  const TRANSIT = (q.get('api') || 'https://api.transitous.org').replace(/\/$/, '');   // Fahrplan: Transitous (MOTIS)
+  const IRIS = 'https://dbf.finalrewind.org';                                          // DB-Echtzeit (IRIS)
   const OSRM = 'https://router.project-osrm.org';
-  const VOEHRUM_ID = 'de-DELFI_de:03157:8146';       // Vöhrum Bahnhof
-  const HBF_ID = 'de-DELFI_de:03241:31';             // Hannover Hbf
-  const HOME = { lat: 52.3197, lon: 10.2372 };       // Peine / Vöhrum
-  const WORK = { lat: 52.3768, lon: 9.7414 };        // Hannover Hbf – hier ggf. Büro-Koordinaten eintragen
-  const PARK_MIN = 5;                                // Puffer für Parkplatzsuche/Weg beim Auto
-  const WORK_START = '08:00';
+  const PHOTON = 'https://photon.komoot.io';                                           // Adressvorschläge (OSM)
+  const TANK = 'https://creativecommons.tankerkoenig.de/json/list.php';                // Spritpreise (MTS-K)
   const TZ = 'Europe/Berlin';
+  const PARK_MIN = 5;          // Puffer für Parkplatz/Weg beim Auto
+  const MIN_TRANSFER = 2;      // Mindest-Umstiegszeit (Minuten)
+  const FUELS = { e5: 'Super E5', e10: 'Super E10', diesel: 'Diesel' };
+
+  /* ---------- Symbole (Linien-Icons) ---------- */
+  const ICONS = {
+    refresh: '<path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/>',
+    sliders: '<path d="M21 4h-7"/><path d="M10 4H3"/><path d="M21 12h-9"/><path d="M8 12H3"/><path d="M21 20h-5"/><path d="M12 20H3"/><path d="M14 2v4"/><path d="M8 10v4"/><path d="M16 18v4"/>',
+    car: '<path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/>',
+    train: '<path d="M8 3.1V7a4 4 0 0 0 8 0V3.1"/><path d="m9 15-1-1"/><path d="m15 15 1-1"/><path d="M9 19c-2.8 0-5-2.2-5-5v-4a8 8 0 0 1 16 0v4c0 2.8-2.2 5-5 5Z"/><path d="m8 19-2 3"/><path d="m16 19 2 3"/>',
+    home: '<path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .7-1.5l7-6a2 2 0 0 1 2.6 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+    building: '<path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/>',
+    locate: '<path d="M2 12h3"/><path d="M19 12h3"/><path d="M12 2v3"/><path d="M12 19v3"/><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="3"/>',
+    alert: '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
+    info: '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>',
+    check: '<path d="M20 6 9 17l-5-5"/>',
+    bell: '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
+    flag: '<path d="M4 22V4a1 1 0 0 1 .4-.8A6 6 0 0 1 8 2c3 0 5 2 7.3 2q2 0 3.1-.8A1 1 0 0 1 20 4v10a1 1 0 0 1-.4.8A6 6 0 0 1 16 16c-3 0-5-2-8-2a6 6 0 0 0-4 1.5"/>',
+    ban: '<circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/>',
+    fuel: '<path d="M3 22V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v17"/><path d="M3 22h12"/><path d="M7 8h4"/><path d="M15 10h2a2 2 0 0 1 2 2v4a1.5 1.5 0 0 0 3 0V9l-3-3"/>',
+    external: '<path d="M7 7h10v10"/><path d="M7 17 17 7"/>',
+    palette: '<circle cx="12" cy="12" r="10"/><path d="M12 2v20"/><path d="M12 7a5 5 0 0 1 0 10"/>',
+    clock: '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+    pin: '<path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
+    sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>',
+    cloudsun: '<path d="M12 2v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="M20 12h2"/><path d="m19.07 4.93-1.41 1.41"/><path d="M15.95 12.65a4 4 0 0 0-5.93-4.13"/><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"/>',
+    cloud: '<path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>',
+    fog: '<path d="M4 14.9A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.24"/><path d="M16 17H7"/><path d="M17 21H9"/>',
+    drizzle: '<path d="M4 14.9A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.24"/><path d="M8 19v1"/><path d="M8 14v1"/><path d="M16 19v1"/><path d="M16 14v1"/><path d="M12 21v1"/><path d="M12 16v1"/>',
+    rain: '<path d="M4 14.9A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.24"/><path d="M16 14v6"/><path d="M8 14v6"/><path d="M12 16v6"/>',
+    snow: '<path d="M4 14.9A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.24"/><path d="M8 15h.01"/><path d="M8 19h.01"/><path d="M12 17h.01"/><path d="M12 21h.01"/><path d="M16 15h.01"/><path d="M16 19h.01"/>',
+    storm: '<path d="M6 16.33A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 .5 8.97"/><path d="m13 12-3 5h4l-3 5"/>',
+  };
+  const ic = (n, cls = '') => `<svg class="ic ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n]}</svg>`;
+  const ICON_GMAPS = `<svg class="brand" viewBox="0 0 24 24" aria-hidden="true"><path fill="#34a853" d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7z"/><path fill="#ea4335" d="M12 2a7 7 0 0 0-6.2 3.8L12 11z"/><path fill="#fbbc04" d="M5.8 5.8A7 7 0 0 0 5 9c0 1.6.7 3.5 1.7 5.3L12 11z"/><path fill="#4285f4" d="M12 2v9l6.2-5.2A7 7 0 0 0 12 2z"/><circle cx="12" cy="9" r="2.6" fill="#fff"/></svg>`;
+  const ICON_WAZE = `<svg class="brand" viewBox="0 0 24 24" aria-hidden="true"><path fill="#33ccff" d="M12 2.5c-4.6 0-8.3 3.4-8.3 7.6 0 1.6.5 3 1.4 4.2-.1 1.2-.5 2.3-1.2 3.2 1.4.1 2.7-.3 3.7-1 1.3.6 2.8.9 4.4.9 4.6 0 8.3-3.4 8.3-7.6S16.6 2.5 12 2.5z"/><circle cx="9.2" cy="9.4" r="1.2" fill="#1a1a1a"/><circle cx="14.8" cy="9.4" r="1.2" fill="#1a1a1a"/><path fill="none" stroke="#1a1a1a" stroke-width="1.3" stroke-linecap="round" d="M9 12.6c1.7 1.6 4.3 1.6 6 0"/><circle cx="8" cy="19.8" r="1.7" fill="#1a1a1a"/><circle cx="15.5" cy="19.8" r="1.7" fill="#1a1a1a"/></svg>`;
+
+  /* ---------- Einstellungen ---------- */
+  const defaultCfg = () => ({
+    home: { label: 'Vöhrum (Standard)', lat: 52.33556, lon: 10.168516 },
+    work: { label: 'Karl-Wiechert-Allee, Hannover (Standard)', lat: 52.374416, lon: 9.808116 },
+    homeStation: { name: 'Vöhrum Bahnhof', id: 'de-DELFI_de:03157:8146' },
+    workStation: { name: 'Hannover Bf K.-Wiechert-Allee', id: 'de-DELFI_de:03241:3017' },
+    arrive: { out: '08:00', back: '' },
+    workdays: [1, 2, 3, 4, 5],
+    remind: { dep: false, depMin: 10, arr: false, arrMin: 5 },
+    fuel: { type: 'e5', rad: 5, key: '', gps: true },
+    theme: 'auto', tomtom: '',
+  });
+  let cfg = loadCfg();
+  function loadCfg() {
+    const d = defaultCfg();
+    try {
+      const s = JSON.parse(localStorage.getItem('pendelCfg') || '{}');
+      if (s.routes) Object.assign(s, s.routes[0] || {});                      // ältere Einstellungen übernehmen
+      if (s.arriveBy !== undefined && !s.arrive) s.arrive = { out: s.arriveBy, back: '' };
+      if (s.remindOn !== undefined && !s.remind) s.remind = { dep: !!s.remindOn, depMin: s.remindMin || 10, arr: false, arrMin: 5 };
+      ['routes', 'route', 'useAlt', 'arriveBy', 'remindOn', 'remindMin'].forEach(k => delete s[k]);
+      return { ...d, ...s, arrive: { ...d.arrive, ...s.arrive }, remind: { ...d.remind, ...s.remind }, fuel: { ...d.fuel, ...s.fuel } };
+    } catch { return d; }
+  }
+  const saveCfg = () => { try { localStorage.setItem('pendelCfg', JSON.stringify(cfg)); } catch {} };
 
   const $ = id => document.getElementById(id);
-  const fmt = d => new Date(d).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit', timeZone: TZ });
-  const berlinHour = () => +new Date().toLocaleString('de-DE', { hour: '2-digit', hour12: false, timeZone: TZ });
+  const TF = new Intl.DateTimeFormat('de-DE', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: TZ });
+  const DF = new Intl.DateTimeFormat('de-DE', { weekday: 'long', day: 'numeric', month: 'long', timeZone: TZ });
+  const fmt = d => TF.format(new Date(d));
+  const berlinHour = () => +TF.format(new Date()).slice(0, 2);
   const mins = ms => Math.round(ms / 60000);
   const dur = m => m >= 60 ? `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, '0')} min` : `${m} min`;
   const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const errText = e => e.name === 'AbortError' ? 'Zeitüberschreitung' : e instanceof TypeError ? 'keine Verbindung' : e.message;
+  const isWorkday = d => cfg.workdays.includes(d.getDay());
+  const clean = n => String(n).replace(/,? (Bahnhof|Bf)$/, '').replace(/^Hannover Bf /, '');
 
+  let mode = (() => { try { return localStorage.getItem('pendelMode') === 'car' ? 'car' : 'train'; } catch { return 'train'; } })();
   let dir = berlinHour() >= 12 ? 'back' : 'out';
   let seq = 0;
-  const last = { trains: null, car: null };
+  const last = { trains: null, car: null, dl: null, fuel: null };
+  const ends = () => dir === 'out'
+    ? { a: cfg.home, b: cfg.work, sa: cfg.homeStation, sb: cfg.workStation }
+    : { a: cfg.work, b: cfg.home, sa: cfg.workStation, sb: cfg.homeStation };
 
-  async function getJSON(url) {
-    const ctl = new AbortController();
-    const t = setTimeout(() => ctl.abort(), 12000);
-    try {
-      const r = await fetch(url, { signal: ctl.signal });
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      return await r.json();
-    } finally { clearTimeout(t); }
+  // Wiederholt bei Netzfehlern, HTTP 429 (zu viele Anfragen) und 5xx.
+  async function getJSON(url, retries = 0, timeout = 12000) {
+    for (let i = 0; ; i++) {
+      const ctl = new AbortController();
+      const t = setTimeout(() => ctl.abort(), timeout);
+      try {
+        const r = await fetch(url, { signal: ctl.signal });
+        if (r.ok) return await r.json();
+        const err = new Error(r.status === 429 ? 'zu viele Anfragen (HTTP 429)' : 'HTTP ' + r.status);
+        err.status = r.status;
+        if (i >= retries || (r.status < 500 && r.status !== 429)) throw err;
+      } catch (e) {
+        if (e.status || i >= retries) throw e;
+      } finally { clearTimeout(t); }
+      await new Promise(res => setTimeout(res, 1500 * (i + 1)));
+    }
+  }
+
+  /* ---------- Bahnhöfe (immer Bahnhof → Bahnhof) ---------- */
+  const nearest = {};
+  async function stationOf(s, p) {
+    if (s && s.id) return s;
+    const k = `${p.lat},${p.lon}`;
+    if (nearest[k]) return nearest[k];
+    try { const c = JSON.parse(localStorage.getItem('pendelNearest:' + k) || 'null'); if (c) return (nearest[k] = c); } catch {}
+    const r = await getJSON(`${TRANSIT}/api/v1/reverse-geocode?place=${k}&type=STOP&language=de`, 1);
+    const isRail = x => (x.modes || []).some(m => /RAIL|METRO|SUBURBAN|SUBWAY|TRAM/.test(m));
+    const hit = r.find(isRail) || r[0];
+    if (!hit) throw new Error('Kein Bahnhof in der Nähe von „' + p.label + '“ gefunden');
+    const v = { name: hit.name, id: hit.id };
+    try { localStorage.setItem('pendelNearest:' + k, JSON.stringify(v)); } catch {}
+    return (nearest[k] = v);
   }
 
   /* ---------- Bahn ---------- */
+  // Namen so, wie sie die DB-Suche kennt (bahn.de / DB Navigator).
+  const dbName = n => String(n).replace(/^Hannover Bf /, 'Hannover ').replace(/K\.-Wiechert/, 'Karl-Wiechert').replace(/,? (Bahnhof|Bf)$/, '');
+  const localISO = d => new Date(d).toLocaleString('sv-SE', { timeZone: TZ }).replace(' ', 'T');
+  const dbLink = (from, to, when) =>
+    `https://www.bahn.de/buchung/fahrplan/suche#sts=true&so=${encodeURIComponent(dbName(from))}&zo=${encodeURIComponent(dbName(to))}&kl=2&hd=${encodeURIComponent(localISO(when))}&hza=D&ar=false&s=true&d=false&fm=false&bp=false`;
+
   function parseJourney(it) {
+    const idx = it.legs.findIndex(l => l.mode !== 'WALK');
+    if (idx < 0) return null;
     const rides = it.legs.filter(l => l.mode !== 'WALK');
-    if (!rides.length) return null;
     const f = rides[0], l = rides[rides.length - 1];
+    const lastIdx = it.legs.lastIndexOf(l);
     const dep = f.from.departure, planned = f.from.scheduledDeparture || dep;
+    const sec = arr => arr.reduce((n, x) => n + x.duration, 0);
     return {
-      dep, arr: l.to.arrival, planned,
+      dep, planned, start: it.startTime, arr: it.endTime, schedArr: it.endTime,
       delay: Math.round((new Date(dep) - new Date(planned)) / 60000),
-      live: !!f.realTime,
+      live: !!f.realTime, iris: false, notes: [], gap: null, missed: false,
       cancelled: it.legs.some(x => x.cancelled || x.from.cancelled || x.to.cancelled),
       platform: f.from.track || f.from.scheduledTrack || '–',
       lines: rides.map(x => x.routeShortName || x.displayName).filter(Boolean).join(' → ') || 'Zug',
+      fromName: clean(f.from.name), toName: clean(l.to.name),
+      fromRaw: f.from.name, toRaw: l.to.name,
+      via: rides.slice(0, -1).map(x => clean(x.to.name)).join(', '),
       transfers: rides.length - 1,
+      walkIn: Math.round(sec(it.legs.slice(0, idx)) / 60),
+      walkOut: Math.round(sec(it.legs.slice(lastIdx + 1)) / 60),
       minutes: Math.round(it.duration / 60),
+      raw: rides.map(x => ({
+        line: x.routeShortName || x.displayName || '',
+        from: x.from.name, to: x.to.name,
+        schedDep: x.from.scheduledDeparture || x.from.departure,
+        schedArr: x.to.scheduledArrival || x.to.arrival,
+        durMin: Math.round(x.duration / 60),
+      })),
     };
   }
   const cls = t => t.cancelled || t.delay >= 5 ? 'bad' : t.delay >= 1 ? 'warn' : 'ok';
   const statusText = t => t.cancelled ? 'Fällt aus' : t.delay >= 1 ? `+${t.delay} min` : t.live ? 'pünktlich' : 'planmäßig';
 
-  async function loadTrains() {
-    const [from, to] = dir === 'out' ? [VOEHRUM_ID, HBF_ID] : [HBF_ID, VOEHRUM_ID];
-    const r = await getJSON(`${DB}/api/v1/plan?fromPlace=${encodeURIComponent(from)}&toPlace=${encodeURIComponent(to)}&numItineraries=6&language=de`);
-    const js = (r.itineraries || []).map(parseJourney).filter(t => t && t.dep && t.arr);
-    if (!js.length) throw new Error('Keine Verbindungen gefunden');
-    return js;
+  /* Echtzeit: DB-IRIS (wie die Bahnhofsanzeigen) über dbf.finalrewind.org */
+  const boards = {};
+  const irisName = n => String(n).replace(/,? (Bahnhof|Bf)$/, '');
+  function board(name) {
+    const k = irisName(name), b = boards[k];
+    if (b && Date.now() - b.ts < 45000) return b.p;
+    const p = getJSON(`${IRIS}/${encodeURIComponent(k)}.json?limit=40&lookahead=240`, 1, 10000)
+      .then(d => d.departures || null).catch(() => null);
+    boards[k] = { ts: Date.now(), p };
+    return p;
+  }
+  const norm = x => String(x).toLowerCase().replace(/[^a-z0-9äöüß]/g, '');
+  const shortOf = train => String(train).replace(/^[A-Z]{2,4}\s+(?=[A-Z])/, '');
+  const tokensOf = x => String(x).split(/[\s.,-]+/).filter(w => w.length >= 3 && !/^(bahnhof|bf)$/i.test(w)).map(norm);
+  const minOfDay = s => +s.slice(0, 2) * 60 + +s.slice(3, 5);
+  const msgs = e => [...((e.messages || {}).delay || []), ...((e.messages || {}).qos || [])].map(m => m.text).filter(Boolean);
+  function towards(e, from, to) {
+    const names = (e.route || []).map(r => norm(r.name));
+    const find = x => { const tk = tokensOf(x); return names.findIndex(n => tk.length && tk.every(w => n.includes(w))); };
+    const iF = find(from), iT = find(to);
+    return iF >= 0 && iT > iF;
   }
 
+  async function applyLive(t) {
+    const [r1, r2] = t.raw;
+    const b1 = await board(r1.from);
+    if (!b1) return;
+    const e1 = b1.find(e => norm(shortOf(e.train)) === norm(r1.line) && e.scheduledDeparture === fmt(r1.schedDep));
+    if (!e1) return;
+    const d1 = e1.delayDeparture || 0;
+    t.iris = true;
+    t.planned = r1.schedDep;
+    t.dep = new Date(+new Date(r1.schedDep) + d1 * 60000).toISOString();
+    t.delay = d1;
+    t.live = !e1.missingRealtime;
+    t.cancelled = !!e1.isCancelled;
+    t.platform = e1.platform || e1.scheduledPlatform || t.platform;
+    const notes = msgs(e1);
+    let arr = +new Date(t.arr) + d1 * 60000;
+    if (r2) {
+      const b2 = await board(r2.from);
+      if (b2) {
+        const a1 = b2.find(e => e.trainNumber === e1.trainNumber);
+        const arrDelay = a1 ? (a1.delayArrival ?? a1.delayDeparture ?? d1) : d1;
+        const atTransfer = +new Date(r1.schedArr) + arrDelay * 60000;
+        const options = b2.filter(e => !e.isCancelled && towards(e, r2.from, r2.to)).map(e => {
+          let diff = (minOfDay(e.scheduledDeparture) - minOfDay(fmt(r1.schedArr)) + 1440) % 1440;
+          if (diff > 1410) diff -= 1440;
+          return { e, real: +new Date(r1.schedArr) + (diff + (e.delayDeparture || 0)) * 60000 };
+        }).filter(o => o.real >= atTransfer + MIN_TRANSFER * 60000).sort((a, b) => a.real - b.real);
+        const o = options[0];
+        if (o) {
+          t.lines = `${r1.line} → ${shortOf(o.e.train)}`;
+          t.gap = Math.round((o.real - atTransfer) / 60000);
+          t.missed = o.real - +new Date(r2.schedDep) > 90000;
+          t.missedTo = `${shortOf(o.e.train)} ${fmt(o.real)}`;
+          arr = o.real + (r2.durMin + t.walkOut) * 60000;
+          msgs(o.e).forEach(m => notes.push(m));
+        }
+      }
+    }
+    t.notes = [...new Set(notes)].slice(0, 2);
+    t.arr = new Date(arr).toISOString();
+    t.start = new Date(+new Date(t.dep) - t.walkIn * 60000).toISOString();
+    t.minutes = Math.round((arr - new Date(t.start)) / 60000);
+  }
+  async function enrich(js) {
+    await Promise.all(js.map(t => applyLive(t).catch(() => {})));
+    js.sort((a, b) => new Date(a.dep) - new Date(b.dep));
+  }
+
+  // Der Routenplaner rechnet von Bahnhof zu Bahnhof. Erst nur Zug/S-Bahn, sonst auch Bus/Stadtbahn.
+  async function planJourneys(extra = '', n = 6) {
+    const e = ends();
+    const [sa, sb] = await Promise.all([stationOf(e.sa, e.a), stationOf(e.sb, e.b)]);
+    const tail = `maxPreTransitTime=1800&maxPostTransitTime=1800&numItineraries=${n}&language=de${extra}`;
+    for (const [modes, railOnly] of [['&transitModes=RAIL,SUBURBAN', true], ['', false]]) {
+      const r = await getJSON(`${TRANSIT}/api/v1/plan?fromPlace=${encodeURIComponent(sa.id)}&toPlace=${encodeURIComponent(sb.id)}${modes}&${tail}`, 2, 20000);
+      const js = (r.itineraries || []).map(parseJourney).filter(t => t && t.dep && t.arr);
+      if (js.length) { js.forEach(t => t.railOnly = railOnly); await enrich(js); return js; }
+    }
+    throw new Error(`Keine Verbindung von „${sa.name}“ nach „${sb.name}“ gefunden. Bahnhöfe in den Einstellungen prüfen.`);
+  }
+  const loadTrains = () => planJourneys('', 6);
+
+  const future = t => new Date(t.dep) > Date.now() - 60000;                  // kommt noch (oder fährt gerade ab)
+  const valid = t => new Date(t.arr) > Date.now() - 120000;                  // gehört noch zur Anzeige (auch unterwegs)
+  const placeKey = (s, p) => s && s.id ? s.id : `${p.lat},${p.lon}`;
+  const cacheKey = () => { const e = ends(); return `pendelTrains:${placeKey(e.sa, e.a)}>${placeKey(e.sb, e.b)}`; };
+  function saveTrainsCache(js) { try { localStorage.setItem(cacheKey(), JSON.stringify({ ts: Date.now(), js })); } catch {} }
+  function loadTrainsCache() {
+    try {
+      const c = JSON.parse(localStorage.getItem(cacheKey()) || 'null');
+      const js = c && Date.now() - c.ts < 3600000 ? c.js.filter(valid) : [];
+      return js.some(future) ? { js, ts: c.ts } : null;
+    } catch { return null; }
+  }
+  let trainsErr = null, trainsOk = 0;
+  const heroOf = js => { const up = (js || []).filter(future); return up.find(t => !t.cancelled) || up[0]; };
+
+  const note = (kind, icon, html) => `<div class="note ${kind}">${ic(icon)}<span>${html}</span></div>`;
+
   function renderTrains(js) {
-    const hero = js.find(t => !t.cancelled) || js[0];
-    const rest = js.filter(t => t !== hero).slice(0, 3);
+    const up = js.filter(future);
+    const hero = heroOf(js);
+    const rest = up.filter(t => t !== hero).slice(0, 3);
     const wait = mins(new Date(hero.dep) - Date.now());
-    const c = cls(hero);
+    const skipped = up.filter(t => t.cancelled && new Date(t.dep) < new Date(hero.dep));
+    let notes = '';
+    skipped.forEach(t => { notes += note('bad', 'ban', `Ausgefallen: ${fmt(t.planned)} ${esc(t.lines)}`); });
+    if (hero.missed) notes += note('bad', 'alert', `Anschluss in ${esc(hero.via)} wird verpasst – nächster Zug ${esc(hero.missedTo)}`);
+    else if (hero.gap != null && hero.gap < 3) notes += note('warn', 'alert', `Knapper Umstieg in ${esc(hero.via)}: nur ${hero.gap} min`);
+    hero.notes.forEach(m => { notes += note('', 'info', esc(m)); });
     $('hero').innerHTML = `
-      <div class="label">Nächster Zug · ${dir === 'out' ? 'Vöhrum → Hannover Hbf' : 'Hannover Hbf → Vöhrum'}</div>
-      <div class="row" style="margin-top:6px">
-        <div class="big">${fmt(hero.dep)}${hero.delay >= 1 && !hero.cancelled ? `<em class="old">${fmt(hero.planned)}</em>` : ''}</div>
-        <span class="pill ${c}">${statusText(hero)}</span>
-      </div>
-      <div class="facts">
-        <div><b>${wait <= 0 ? 'jetzt' : 'in ' + wait + ' min'}</b><span>Abfahrt</span></div>
-        <div><b>Gl. ${esc(hero.platform)}</b><span>Gleis</span></div>
-        <div><b>${fmt(hero.arr)}</b><span>Ankunft</span></div>
-      </div>
-      <div class="line">${esc(hero.lines)} · ${dur(hero.minutes)}${hero.transfers ? ` · ${hero.transfers}× umsteigen` : ' · direkt'}</div>`;
-    $('next').hidden = false;
-    $('next').querySelector('.list').innerHTML = rest.length ? rest.map(t => `
-      <div class="item ${cls(t)}">
+      <a class="tap" href="${dbLink(hero.fromRaw, hero.toRaw, hero.planned)}" target="_blank" rel="noopener" aria-label="In DB Navigator öffnen">
+        <div class="label">${ic('train')}<span>${esc(hero.fromName)} → ${esc(hero.toName)}</span><span class="grow"></span>${hero.iris ? '<span class="live">Live</span>' : ''}<span class="dbchip">DB${ic('external')}</span></div>
+        <div class="row">
+          <div class="big">${fmt(hero.dep)}${hero.delay >= 1 && !hero.cancelled ? `<em class="old">${fmt(hero.planned)}</em>` : ''}</div>
+          <span class="pill ${cls(hero)}">${statusText(hero)}</span>
+        </div>
+        <div class="facts">
+          <div><b>${wait <= 0 ? 'jetzt' : 'in ' + wait + ' min'}</b><span>Abfahrt</span></div>
+          <div><b>Gl. ${esc(hero.platform)}</b><span>Gleis</span></div>
+          <div><b>${fmt(hero.arr)}</b><span>Ankunft</span></div>
+        </div>
+        <div class="line"><b>${esc(hero.lines)}</b>${hero.transfers ? ` · Umstieg ${esc(hero.via)}${hero.gap != null ? ` (${hero.gap} min)` : ''}` : ' · direkt'} · ${dur(hero.minutes)}${hero.walkIn >= 1 ? ` · ${hero.walkIn} min Fußweg` : ''}</div>
+      </a>${notes}`;
+    $('next').hidden = !rest.length;
+    $('next').querySelector('.list').innerHTML = rest.map(t => `
+      <a class="item ${cls(t)}" href="${dbLink(t.fromRaw, t.toRaw, t.planned)}" target="_blank" rel="noopener">
         <div class="t">${fmt(t.dep)}</div>
-        <div class="m"><b>${esc(t.lines)}</b><br>Gl. ${esc(t.platform)} · an ${fmt(t.arr)} · ${dur(t.minutes)}</div>
+        <div class="m"><b>${esc(t.lines)}</b><br>Gl. ${esc(t.platform)} · an ${fmt(t.arr)}</div>
         <span class="pill ${cls(t)}">${statusText(t)}</span>
-      </div>`).join('') : '<div class="skel">Keine weiteren Verbindungen.</div>';
+      </a>`).join('');
     return hero;
+  }
+
+  /* ---------- Ankunftsziel: spätester Zug ---------- */
+  function targetDate() {
+    const v = cfg.arrive[dir];
+    if (!v) return null;
+    const [h, m] = v.split(':').map(Number);
+    const d = new Date(); d.setHours(h, m, 0, 0);
+    if (d < Date.now()) d.setDate(d.getDate() + 1);
+    return d;
+  }
+  const dlCache = {};
+  async function loadDeadline() {
+    const target = targetDate();
+    if (!target || !isWorkday(target)) return null;
+    const key = cacheKey() + '|' + target.getTime();
+    const c = dlCache[key];
+    if (c && Date.now() - c.ts < 300000) return c.v;
+    const js = await planJourneys(`&arriveBy=true&time=${encodeURIComponent(target.toISOString())}`, 4);
+    const v = { js, target };
+    dlCache[key] = { ts: Date.now(), v };
+    return v;
+  }
+  function renderDeadline(d) {
+    const el = $('dl');
+    const t0 = targetDate();
+    if (!t0) { el.hidden = true; return; }
+    const solo = html => { el.hidden = false; el.innerHTML = html; el.querySelector('.note').style.marginTop = '0'; };
+    if (!isWorkday(t0)) { solo(note('', 'info', 'Kein Arbeitstag – Ankunftsziel und Wecker pausieren.')); return; }
+    if (!d) { el.hidden = true; return; }
+    const { js, target } = d, want = cfg.arrive[dir];
+    const byTime = js.filter(t => new Date(t.schedArr) <= target).sort((a, b) => new Date(a.dep) - new Date(b.dep));
+    const planned = byTime[byTime.length - 1];
+    const best = [...js].filter(t => !t.cancelled && new Date(t.arr) <= target).sort((a, b) => new Date(a.dep) - new Date(b.dep)).pop();
+    if (!best) { solo(note('bad', 'alert', `Kein Zug erreicht ${esc(want)} Uhr – Auto nehmen oder früher losfahren.`)); return; }
+    const buf = mins(target - new Date(best.arr));
+    const day = target.toDateString() === new Date().toDateString() ? 'heute' : 'morgen';
+    const k = buf >= 10 ? 'ok' : buf >= 3 ? 'warn' : 'bad';
+    let extra = '';
+    if (planned && planned !== best) extra = note('warn', 'alert', `Planmäßig ${fmt(planned.planned)} ${esc(planned.lines)} – ${planned.cancelled ? 'fällt aus' : `kommt zu spät (+${planned.delay} min)`}. Nimm ${fmt(best.dep)}.`);
+    el.hidden = false;
+    el.innerHTML = `
+      <a class="tap" href="${dbLink(best.fromRaw, best.toRaw, best.planned)}" target="_blank" rel="noopener">
+        <div class="label">${ic('flag')}<span>${dir === 'out' ? 'Spätestens' : 'Zuhause'} ${esc(want)} Uhr · ${day}</span><span class="grow"></span><span class="dbchip">DB${ic('external')}</span></div>
+        <div class="row"><div class="big">${fmt(best.dep)}</div><span class="pill ${k}">${buf} min Puffer</span></div>
+        <div class="line"><b>${esc(best.lines)}</b> · Gl. ${esc(best.platform)} · Ankunft ${fmt(best.arr)}</div>
+      </a>${extra}`;
   }
 
   /* ---------- Auto ---------- */
   async function loadCar() {
-    const [a, b] = dir === 'out' ? [HOME, WORK] : [WORK, HOME];
+    const { a, b } = ends();
+    if (cfg.tomtom) {
+      const r = await getJSON(`https://api.tomtom.com/routing/1/calculateRoute/${a.lat},${a.lon}:${b.lat},${b.lon}/json?key=${encodeURIComponent(cfg.tomtom)}&traffic=true&travelMode=car&routeType=fastest`)
+        .catch(e => { throw new Error(/HTTP 40[13]/.test(e.message) ? 'TomTom-Key ungültig' : e.message); });
+      const s = r.routes[0].summary;
+      return { minutes: Math.round(s.travelTimeInSeconds / 60), km: s.lengthInMeters / 1000, delay: Math.round((s.trafficDelayInSeconds || 0) / 60), live: true, a, b };
+    }
     const r = await getJSON(`${OSRM}/route/v1/driving/${a.lon},${a.lat};${b.lon},${b.lat}?overview=false`);
     if (r.code !== 'Ok' || !r.routes[0]) throw new Error('Keine Route');
-    return { minutes: Math.round(r.routes[0].duration / 60), km: r.routes[0].distance / 1000, a, b };
+    return { minutes: Math.round(r.routes[0].duration / 60), km: r.routes[0].distance / 1000, live: false, a, b };
   }
   function renderCar(c) {
-    const url = `https://www.google.com/maps/dir/?api=1&origin=${c.a.lat},${c.a.lon}&destination=${c.b.lat},${c.b.lon}&travelmode=driving`;
+    const gm = `https://www.google.com/maps/dir/?api=1&destination=${c.b.lat},${c.b.lon}&travelmode=driving&dir_action=navigate`;
+    const wz = `https://waze.com/ul?ll=${c.b.lat},${c.b.lon}&navigate=yes`;
+    const d = c.live ? (c.delay >= 5 ? 'bad' : c.delay >= 1 ? 'warn' : 'ok') : '';
+    const nm = l => esc(l.replace(' (Standard)', '').split(',')[0]);
     $('car').innerHTML = `
-      <div class="label">Auto · ${dir === 'out' ? 'Peine → Hannover' : 'Hannover → Peine'}</div>
+      <div class="label">${ic('car')}<span>${nm(c.a.label)} → ${nm(c.b.label)}</span></div>
       <div class="car"><div class="big">${c.minutes}<em>min</em></div><div class="km">${c.km.toFixed(1).replace('.', ',')} km</div></div>
-      <div class="line">Ohne Verkehr gerechnet (OSRM)</div>
-      <a class="btn" style="margin-top:12px" href="${url}" target="_blank" rel="noopener">🗺️ Live-Verkehr in Google Maps</a>`;
+      ${c.live
+        ? `<div class="line"><span class="pill ${d}">${c.delay >= 1 ? '+' + c.delay + ' min Verkehr' : 'freie Fahrt'}</span> Live-Verkehr (TomTom)</div>`
+        : `<div class="line">Ohne Live-Verkehr berechnet. <button class="linkbtn" id="toSettings">TomTom-Schlüssel eintragen</button></div>`}
+      <div class="nav">
+        <a class="btn" href="${gm}" target="_blank" rel="noopener">${ICON_GMAPS}Google Maps</a>
+        <a class="btn" href="${wz}" target="_blank" rel="noopener">${ICON_WAZE}Waze</a>
+      </div>`;
+    const b = $('toSettings'); if (b) b.onclick = () => openSettings('auto');
   }
 
-  /* ---------- Empfehlung ---------- */
-  function renderRec(hero, car) {
-    const el = $('recCard');
+  /* ---------- Spritpreise (Tankerkönig / MTS-K) ---------- */
+  let pos = null;
+  function position() {
+    return new Promise(res => {
+      const home = { lat: cfg.home.lat, lon: cfg.home.lon, gps: false };
+      if (!cfg.fuel.gps || !navigator.geolocation) return res(home);
+      if (pos && Date.now() - pos.ts < 300000) return res(pos);
+      navigator.geolocation.getCurrentPosition(
+        p => { pos = { lat: p.coords.latitude, lon: p.coords.longitude, gps: true, ts: Date.now() }; res(pos); },
+        () => res(home), { timeout: 8000, maximumAge: 300000 });
+    });
+  }
+  const fuelCache = {};
+  async function loadFuel() {
+    if (!cfg.fuel.key) return { nokey: true };
+    const p = await position();
+    const f = cfg.fuel;
+    const k = [p.lat.toFixed(2), p.lon.toFixed(2), f.type, f.rad, f.key].join('|');
+    const c = fuelCache[k];
+    if (c && Date.now() - c.ts < 300000) return c.v;            // Tankerkönig: höchstens alle 5 min abfragen
+    const r = await getJSON(`${TANK}?lat=${p.lat.toFixed(5)}&lng=${p.lon.toFixed(5)}&rad=${f.rad}&sort=price&type=${f.type}&apikey=${encodeURIComponent(f.key)}`, 1);
+    if (!r.ok) throw new Error(r.message || 'Tankerkönig-Fehler');
+    const list = (r.stations || []).filter(s => s.isOpen && s.price).slice(0, 3);
+    const v = { list, gps: p.gps, type: f.type, rad: f.rad, ts: Date.now() };
+    fuelCache[k] = { ts: Date.now(), v };
+    return v;
+  }
+  const priceHtml = p => { const s = p.toFixed(3).replace('.', ','); return `${s.slice(0, -1)}<sup>${s.slice(-1)}</sup>`; };
+  function renderFuel(v, err) {
+    const el = $('fuel');
+    const head = `<div class="label">${ic('fuel')}<span>Sprit${v && v.list ? ` · ${FUELS[v.type]} · ${v.rad} km ${v.gps ? 'um dich' : 'um Zuhause'}` : ''}</span></div>`;
+    if (err) { el.innerHTML = head + `<div class="err">${ic('alert')}<span>${esc(err)}</span></div>`; return; }
+    if (!v || v.nokey) {
+      el.innerHTML = `${head}<div class="line">Für Spritpreise in deiner Nähe wird ein kostenloser Tankerkönig-Schlüssel gebraucht.</div>
+        <div class="nav"><button class="btn" id="fuelSet">${ic('sliders')}Einrichten</button><a class="btn" href="https://creativecommons.tankerkoenig.de/#register" target="_blank" rel="noopener">${ic('external')}Schlüssel holen</a></div>`;
+      $('fuelSet').onclick = () => openSettings('auto');
+      return;
+    }
+    if (!v.list.length) { el.innerHTML = head + '<div class="line">Keine geöffneten Tankstellen im Umkreis gefunden.</div>'; return; }
+    el.innerHTML = head + '<div class="list">' + v.list.map((s, i) => `
+      <a class="st" href="https://www.google.com/maps/dir/?api=1&destination=${s.lat},${s.lng}&travelmode=driving&dir_action=navigate" target="_blank" rel="noopener">
+        <div class="price">${priceHtml(s.price)}</div>
+        <div class="m"><b>${esc(s.brand || s.name)}${i === 0 ? '<span class="tag">günstigster</span>' : ''}</b><br>${esc(s.street || '')} ${esc(s.houseNumber || '')}, ${esc(s.place || '')}</div>
+        <div class="d">${String(s.dist).replace('.', ',')} km</div>
+      </a>`).join('') + '</div><div class="hint" style="margin-top:8px">Quelle: Tankerkönig (MTS-K), CC BY 4.0</div>';
+  }
+
+  /* ---------- Vergleich unten ---------- */
+  function renderCompare() {
+    const el = $('cmp');
+    const hero = heroOf(last.trains), car = last.car;
     if (!hero || !car) { el.hidden = true; return; }
-    const wait = Math.max(0, mins(new Date(hero.dep) - Date.now()));
-    const trainTotal = wait + hero.minutes;
-    const carTotal = car.minutes + PARK_MIN;
-    let ico, head, sub;
-    if (hero.cancelled || trainTotal > carTotal + 3) {
-      ico = '🚗'; head = 'Auto nehmen';
-      sub = `Auto ≈ ${carTotal} min gesamt, Bahn ≈ ${trainTotal} min (davon ${wait} min Warten).`;
-    } else if (carTotal > trainTotal + 3) {
-      ico = '🚆'; head = 'Bahn nehmen';
-      sub = `Bahn ≈ ${trainTotal} min inkl. ${wait} min Warten, Auto ≈ ${carTotal} min (inkl. ${PARK_MIN} min Parken).`;
-    } else {
-      ico = '⚖️'; head = 'Gleichauf – Bahn entspannter';
-      sub = `Bahn ≈ ${trainTotal} min inkl. ${wait} min Warten, Auto ≈ ${carTotal} min.`;
-    }
-    let extra = '';
-    if (dir === 'out') {
-      const [h, m] = WORK_START.split(':').map(Number);
-      const start = new Date(); start.setHours(h, m, 0, 0);
-      const bestArr = Date.now() + Math.min(trainTotal, carTotal) * 60000;
-      const buf = mins(start - bestArr);
-      if (new Date().getHours() < 12) extra = buf >= 0 ? ` Puffer bis ${WORK_START}: ${buf} min.` : ` ⚠️ ${-buf} min nach ${WORK_START}.`;
-    }
+    const wait = Math.max(0, mins(new Date(hero.start) - Date.now()));
+    const trainT = hero.cancelled ? Infinity : wait + hero.minutes, carT = car.minutes + PARK_MIN;
+    const diff = Math.abs(trainT - carT);
+    let kT, kC, txt;
+    if (!isFinite(trainT)) { kT = 'bad'; kC = 'ok'; txt = 'Zug fällt aus – Auto nehmen'; }
+    else if (diff <= 3) { kT = kC = 'warn'; txt = 'Beides etwa gleich schnell'; }
+    else if (trainT < carT) { kT = 'ok'; kC = 'bad'; txt = `Zug ${diff} min schneller`; }
+    else { kT = 'bad'; kC = 'ok'; txt = `Auto ${diff} min schneller`; }
     el.hidden = false;
-    el.innerHTML = `<div class="rec"><div class="ico">${ico}</div><div><b>${head}</b><small>${sub}${extra}</small></div></div>`;
+    el.innerHTML = `
+      <span class="c ${kT}">${ic('train')}${isFinite(trainT) ? trainT + ' min' : 'Ausfall'}</span>
+      <span class="txt">${txt}</span>
+      <span class="c ${kC}">${ic('car')}${carT} min</span>`;
   }
 
-  /* ---------- Wetter & Uhr ---------- */
-  const WMO = c => c === 0 ? ['☀️', 'Klar'] : c <= 2 ? ['⛅', 'Heiter'] : c === 3 ? ['☁️', 'Bedeckt'] : c <= 48 ? ['🌫️', 'Nebel']
-    : c <= 57 ? ['🌦️', 'Nieselregen'] : c <= 67 ? ['🌧️', 'Regen'] : c <= 77 ? ['🌨️', 'Schnee'] : c <= 82 ? ['🌦️', 'Schauer']
-    : c <= 86 ? ['🌨️', 'Schneeschauer'] : ['⛈️', 'Gewitter'];
-  let wx = null;
-  function renderWx(err) {
-    const clock = new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: TZ });
-    const [ico, txt] = wx ? WMO(wx.weather_code) : ['❔', ''];
-    $('wx').innerHTML = `
-      <div><div class="label">Peine</div><div class="clock">${clock}</div></div>
-      <div class="sp"></div>
-      ${wx ? `<div class="ico">${ico}</div><div><div class="temp">${Math.round(wx.temperature_2m)}°</div><small>${txt} · ${Math.round(wx.wind_speed_10m)} km/h</small></div>`
-           : `<div class="err" style="margin:0">Wetter nicht erreichbar</div>`}`;
+  /* ---------- Uhr & Wetter ---------- */
+  const WMO = c => c === 0 ? ['sun', 'Klar'] : c <= 2 ? ['cloudsun', 'Heiter'] : c === 3 ? ['cloud', 'Bedeckt'] : c <= 48 ? ['fog', 'Nebel']
+    : c <= 57 ? ['drizzle', 'Niesel'] : c <= 67 ? ['rain', 'Regen'] : c <= 77 ? ['snow', 'Schnee'] : c <= 82 ? ['rain', 'Schauer']
+    : c <= 86 ? ['snow', 'Schnee'] : ['storm', 'Gewitter'];
+  let wx = null, shownMinute = '';
+  function renderClock() {
+    const now = new Date(), t = fmt(now);
+    if (t === shownMinute) return;
+    shownMinute = t;
+    $('clock').textContent = t;
+    renderSub();
+  }
+  function renderSub() {
+    $('date').textContent = DF.format(new Date());
+    const el = $('wx');
+    if (!wx) { el.hidden = true; return; }
+    const [icon, txt] = WMO(wx.weather_code);
+    el.hidden = false;
+    el.innerHTML = `${ic(icon)}<div><div class="t">${Math.round(wx.temperature_2m)}°</div><div class="c">${txt}</div></div>`;
   }
   async function loadWx() {
-    const r = await getJSON('https://api.open-meteo.com/v1/forecast?latitude=52.32&longitude=10.23&current=temperature_2m,weather_code,wind_speed_10m&timezone=Europe%2FBerlin');
+    const h = cfg.home;
+    const r = await getJSON(`https://api.open-meteo.com/v1/forecast?latitude=${h.lat}&longitude=${h.lon}&current=temperature_2m,weather_code&timezone=Europe%2FBerlin`);
     wx = r.current;
   }
 
-  /* ---------- Orchestrierung ---------- */
-  function showErr(id, msg, keep) {
-    const el = $(id); el.querySelectorAll('.err').forEach(e => e.remove());
-    if (!keep) el.innerHTML = `<div class="label">${id === 'car' ? 'Auto' : 'Bahn'}</div>`;
-    el.insertAdjacentHTML('beforeend', `<div class="err">⚠️ ${esc(msg)}</div>`);
+  /* ---------- Wecker: Abfahrt & Ankunft ---------- */
+  let remindedDep = '', remindedArr = '';
+  function showAlert(title, text) {
+    const al = $('alert');
+    al.hidden = false;
+    al.innerHTML = `${ic('bell')}<div><b>${esc(title)}</b>${esc(text)}</div><button id="alertOk">OK</button>`;
+    $('alertOk').onclick = () => { al.hidden = true; };
+    try { navigator.vibrate && navigator.vibrate([250, 120, 250]); } catch {}
+    try {
+      if ('Notification' in window && Notification.permission === 'granted') {
+        if (navigator.serviceWorker && navigator.serviceWorker.ready) navigator.serviceWorker.ready.then(r => r.showNotification('Pendel – ' + title, { body: text, icon: 'icon-192.png', tag: 'pendel' }));
+        else new Notification('Pendel – ' + title, { body: text, icon: 'icon-192.png' });
+      }
+    } catch {}
+  }
+  function checkReminder() {
+    if (!last.trains || !isWorkday(new Date())) return;
+    const now = Date.now();
+    if (cfg.remind.dep) {
+      const hero = heroOf(last.trains);
+      if (hero && !hero.cancelled) {
+        const diff = new Date(hero.start) - now;
+        if (diff <= cfg.remind.depMin * 60000 && diff > -60000 && remindedDep !== hero.dep) {
+          remindedDep = hero.dep;
+          showAlert('Gleich losgehen', `${fmt(hero.dep)} ${hero.lines} · Gleis ${hero.platform}`);
+        }
+      }
+    }
+    if (cfg.remind.arr) {
+      const t = last.trains.find(x => !x.cancelled && new Date(x.dep) <= now && new Date(x.arr) > now);   // zuletzt gestarteter Zug
+      if (t && new Date(t.arr) - now <= cfg.remind.arrMin * 60000 && remindedArr !== t.dep) {
+        remindedArr = t.dep;
+        showAlert('Gleich da', `Ankunft ${fmt(t.arr)} · ${t.toName}`);
+      }
+    }
   }
 
-  async function refresh() {
+  /* ---------- Orchestrierung ---------- */
+  function showErr(id, label, msg, keep, icon = 'train') {
+    const el = $(id); el.querySelectorAll('.err').forEach(x => x.remove());
+    if (!keep) el.innerHTML = `<div class="label">${ic(icon)}${label}</div>`;
+    el.insertAdjacentHTML('beforeend', `<div class="err">${ic('alert')}<span>${esc(msg)}</span></div>`);
+  }
+  const mergeRunning = (old, fresh) => {            // bereits gestartete Fahrten behalten (für den Ankunftswecker)
+    const keep = (old || []).filter(t => new Date(t.dep) <= Date.now() && valid(t) && !fresh.some(f => f.planned === t.planned && f.lines === t.lines));
+    return [...keep, ...fresh];
+  };
+
+  let inflight = 0;
+  async function refresh(force) {
+    if (navigator.onLine === false) {                                   // offline: gespeicherte Daten anzeigen
+      $('stand').textContent = 'Offline' + (trainsOk ? ` · Bahn-Daten von ${fmt(trainsOk)}` : '');
+      return;
+    }
+    if (!force && inflight && Date.now() - inflight < 25000) return;   // laufende Abfrage nicht überholen
     const my = ++seq;
+    inflight = Date.now();
     $('refresh').classList.add('spin');
-    const ok = [];
-    const trains = loadTrains().then(js => { if (my !== seq) return; last.trains = js; ok.push(1); }, e => {
+    const trains = loadTrains().then(js => {
       if (my !== seq) return;
-      const msg = `Bahn-API (${new URL(DB).host}) antwortet nicht: ${e.message === 'The user aborted a request.' || e.name === 'AbortError' ? 'Zeitüberschreitung' : e.message}`;
-      showErr('hero', msg, !!last.trains);
-      if (!last.trains) $('next').hidden = true;
+      last.trains = mergeRunning(last.trains, js); trainsErr = null; trainsOk = Date.now(); saveTrainsCache(last.trains);
+    }, e => {
+      if (my !== seq) return;
+      trainsErr = errText(e);
+      if (!last.trains) {
+        showErr('hero', 'Bahn', `Bahn-API (${new URL(TRANSIT).host}) antwortet nicht: ${trainsErr}`);
+        $('next').hidden = true;
+      }
     });
-    const car = loadCar().then(c => { if (my !== seq) return; last.car = c; ok.push(1); }, e => {
+    const car = loadCar().then(c => { if (my === seq) last.car = c; }, e => {
       if (my !== seq) return;
-      showErr('car', `Auto-Route (OSRM) nicht erreichbar: ${e.name === 'AbortError' ? 'Zeitüberschreitung' : e.message}`, !!last.car);
+      last.car = null;
+      showErr('car', 'Auto', `Verkehrs-API nicht erreichbar: ${errText(e)}`, false, 'car');
     });
     const weather = loadWx().catch(() => { wx = null; });
     await Promise.all([trains, car, weather]);
     if (my !== seq) return;
-    let hero = null;
-    if (last.trains) {
-      const hadErr = $('hero').querySelector('.err');
-      hero = renderTrains(last.trains);
-      if (hadErr) showErr('hero', 'Bahn-API nicht erreichbar – zeige letzte Daten', true);
+    inflight = 0;
+    if (last.trains) last.trains = last.trains.filter(valid);
+    if (last.trains && last.trains.some(future)) {
+      renderTrains(last.trains);
+      if (trainsErr && Date.now() - trainsOk > 600000) showErr('hero', 'Bahn', `Bahn-Daten veraltet (Stand ${fmt(trainsOk)}): ${trainsErr}`, true);
+    } else if (trainsErr && !$('hero').querySelector('.err')) {
+      last.trains = null;
+      showErr('hero', 'Bahn', `Bahn-API (${new URL(TRANSIT).host}) antwortet nicht: ${trainsErr}`);
+      $('next').hidden = true;
     }
-    if (last.car && !$('car').querySelector('.err')) renderCar(last.car);
-    renderRec(hero, last.car);
-    renderWx();
-    $('stand').textContent = 'Stand: ' + new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: TZ });
+    if (last.car) renderCar(last.car);
+    renderCompare();
+    renderSub();
+    $('stand').textContent = 'Stand ' + new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: TZ })
+      + (trainsErr && last.trains ? ` · Bahn zuletzt ${fmt(trainsOk)} (${trainsErr})` : '');
     $('refresh').classList.remove('spin');
+    // Nachgelagert, damit die Hauptabfrage Vorrang hat und die Server nicht überlastet werden.
+    try { last.dl = trainsErr ? last.dl : await loadDeadline(); } catch { last.dl = null; }
+    if (my !== seq) return;
+    renderDeadline(last.dl);
+    if (mode === 'car') await refreshFuel();
+  }
+  async function refreshFuel() {
+    try { renderFuel(await loadFuel()); } catch (e) { renderFuel(null, `Spritpreise nicht erreichbar: ${errText(e)}`); }
   }
 
-  function setDir(d) {
-    dir = d; last.trains = last.car = null;
-    $('dirOut').setAttribute('aria-pressed', d === 'out');
-    $('dirBack').setAttribute('aria-pressed', d === 'back');
+  function reset() {
+    last.trains = last.car = last.dl = null;
     $('hero').innerHTML = '<div class="skel">Lade Verbindungen …</div>';
-    $('next').hidden = true;
-    $('car').innerHTML = '<div class="label">Auto</div><div class="skel">Lade Fahrzeit …</div>';
-    $('recCard').hidden = true;
-    refresh();
+    $('next').hidden = true; $('dl').hidden = true; $('alert').hidden = true; $('cmp').hidden = true;
+    $('car').innerHTML = `<div class="label">${ic('car')}Auto</div><div class="skel">Lade Fahrzeit …</div>`;
+    const c = loadTrainsCache();               // sofort zuletzt bekannte Verbindungen zeigen, im Hintergrund aktualisieren
+    if (c) { last.trains = c.js; trainsOk = c.ts; trainsErr = null; renderTrains(c.js); }
+    refresh(true);
   }
-  $('dirOut').onclick = () => setDir('out');
-  $('dirBack').onclick = () => setDir('back');
-  $('refresh').onclick = refresh;
+  function renderSegs() {
+    $('modeSeg').innerHTML = `<button data-m="train" aria-pressed="${mode === 'train'}">${ic('train')}Zug</button><button data-m="car" aria-pressed="${mode === 'car'}">${ic('car')}Auto</button>`;
+    $('dirSeg').innerHTML = `<button data-d="out" aria-pressed="${dir === 'out'}">Zur Arbeit</button><button data-d="back" aria-pressed="${dir === 'back'}">Nach Hause</button>`;
+    $('modeSeg').querySelectorAll('button').forEach(b => b.onclick = () => setMode(b.dataset.m));
+    $('dirSeg').querySelectorAll('button').forEach(b => b.onclick = () => setDir(b.dataset.d));
+  }
+  function setMode(m) {
+    mode = m;
+    try { localStorage.setItem('pendelMode', m); } catch {}
+    $('paneTrain').hidden = m !== 'train';
+    $('paneCar').hidden = m !== 'car';
+    renderSegs();
+    if (m === 'car') { renderFuel(cfg.fuel.key ? null : { nokey: true }); if (cfg.fuel.key) $('fuel').innerHTML = `<div class="label">${ic('fuel')}Sprit</div><div class="skel">Lade Spritpreise …</div>`; refreshFuel(); }
+  }
+  function setDir(d) { dir = d; renderSegs(); reset(); }
+  $('refresh').onclick = () => refresh(true);
+  $('refresh').innerHTML = ic('refresh');
+  $('gear').innerHTML = ic('sliders');
 
-  /* Pull-to-Refresh */
+  /* ---------- Einstellungsfenster ---------- */
+  const FIELDS = [
+    { key: 'home', title: 'Zuhause', icon: 'home', ph: 'Adresse eingeben …', kind: 'addr' },
+    { key: 'homeStation', title: 'Bahnhof bei Zuhause', icon: 'train', ph: 'Bahnhof suchen, z. B. Vöhrum', kind: 'stop' },
+    { key: 'work', title: 'Arbeit', icon: 'building', ph: 'Arbeitsort oder Adresse eingeben …', kind: 'addr' },
+    { key: 'workStation', title: 'Bahnhof bei Arbeit', icon: 'train', ph: 'Haltestelle suchen, z. B. Wiechert', kind: 'stop' },
+  ];
+  const curText = (f, v) => f.kind === 'stop' ? (v && v.name ? v.name : 'Automatisch (nächster Bahnhof)') : v.label;
+  const placeLabel = p => {
+    const street = p.street ? p.street + (p.housenumber ? ' ' + p.housenumber : '') : '';
+    const head = p.name && p.name !== p.street ? p.name : '';
+    const city = [p.postcode, p.city || p.town || p.village || p.district || p.county].filter(Boolean).join(' ');
+    return [head, street, city].filter(Boolean).join(', ');
+  };
+  async function suggest(f, text) {
+    const b = cfg.home;
+    if (f.kind === 'stop') {
+      const r = await getJSON(`${TRANSIT}/api/v1/geocode?text=${encodeURIComponent(text)}&type=STOP&language=de&place=${b.lat},${b.lon}`);
+      const seen = new Set();
+      return r.filter(x => x.id).map(x => {
+        const area = (x.areas || []).find(a => a.default) || (x.areas || []).find(a => a.adminLevel === 8);
+        return { label: x.name + (area ? ' · ' + area.name : ''), val: { name: x.name, id: x.id } };
+      }).filter(x => !seen.has(x.label) && seen.add(x.label)).slice(0, 8);
+    }
+    const r = await getJSON(`${PHOTON}/api/?q=${encodeURIComponent(text)}&limit=6&lang=de&lat=${b.lat}&lon=${b.lon}`);
+    const seen = new Set();
+    return r.features
+      .map(x => ({ label: placeLabel(x.properties), val: { label: placeLabel(x.properties), lat: +x.geometry.coordinates[1].toFixed(5), lon: +x.geometry.coordinates[0].toFixed(5) } }))
+      .filter(x => x.label && !seen.has(x.label) && seen.add(x.label));
+  }
+  let changed = false;
+  const DAYS = [[1, 'Mo'], [2, 'Di'], [3, 'Mi'], [4, 'Do'], [5, 'Fr'], [6, 'Sa'], [0, 'So']];
+  function applyTheme() {
+    if (cfg.theme === 'auto') document.documentElement.removeAttribute('data-theme');
+    else document.documentElement.setAttribute('data-theme', cfg.theme);
+  }
+  const sw = (id, label, icon, on) => `<label class="sw"><span>${ic(icon)} ${label}</span><input type="checkbox" id="${id}" ${on ? 'checked' : ''}></label>`;
+  const mSel = (id, val, opts, unit) => `<select id="${id}">${opts.map(m => `<option value="${m}" ${val === m ? 'selected' : ''}>${m} ${unit}</option>`).join('')}</select>`;
+
+  function openSettings(open) {
+    const grp = (id, icon, title, body) => `<details class="grp" ${open === id ? 'open' : ''}><summary>${ic(icon)}${title}</summary><div class="body">${body}</div></details>`;
+    const places = FIELDS.map(f => `
+      <div class="field" data-k="${f.key}">
+        <span class="label">${ic(f.icon)}${f.title}</span>
+        <div class="cur">${esc(curText(f, cfg[f.key]))}</div>
+        <input type="search" placeholder="${f.ph}" enterkeyhint="search" autocomplete="off">
+        <div class="res"></div>
+        ${f.kind === 'addr' ? `<button type="button" class="btn loc">${ic('locate')}Standort verwenden</button>` : '<button type="button" class="btn auto">Automatisch (nächster Bahnhof)</button>'}
+      </div>`).join('') + '<div class="hint">Die Bahn wird von Bahnhof zu Bahnhof gerechnet. Ohne Auswahl nimmt die App den nächsten Bahnhof zur Adresse.</div>';
+    const times = `
+      <div class="field"><span class="label">${ic('flag')}Zur Arbeit: Ankunft bis</span><input type="time" id="arriveOut" value="${esc(cfg.arrive.out)}"></div>
+      <div class="field"><span class="label">${ic('flag')}Nach Hause: Ankunft bis</span><input type="time" id="arriveBack" value="${esc(cfg.arrive.back)}"></div>
+      <div class="hint">Zeigt den spätesten Zug, mit dem du pünktlich ankommst. Leer lassen zum Ausschalten.</div>
+      <div class="field"><span class="label">Arbeitstage</span><div class="days" id="days">${DAYS.map(([n, l]) => `<button type="button" data-d="${n}" aria-pressed="${cfg.workdays.includes(n)}">${l}</button>`).join('')}</div></div>
+      ${sw('remDep', 'Abfahrtswecker', 'bell', cfg.remind.dep)}
+      <div class="field" id="remDepRow" ${cfg.remind.dep ? '' : 'hidden'}>${mSel('remDepMin', cfg.remind.depMin, [5, 10, 15, 20, 30], 'Min. vor dem Losgehen')}</div>
+      ${sw('remArr', 'Ankunftswecker', 'bell', cfg.remind.arr)}
+      <div class="field" id="remArrRow" ${cfg.remind.arr ? '' : 'hidden'}>${mSel('remArrMin', cfg.remind.arrMin, [3, 5, 10, 15], 'Min. vor der Ankunft')}</div>
+      <div class="hint">Wecker melden sich nur, solange die App geöffnet oder im Hintergrund aktiv ist. Der Ankunftswecker gilt für den zuletzt gestarteten Zug.</div>`;
+    const auto = `
+      <div class="field"><span class="label">${ic('fuel')}Kraftstoff</span>
+        <div class="seg small" id="fuelSeg">${Object.entries(FUELS).map(([v, l]) => `<button data-v="${v}" aria-pressed="${cfg.fuel.type === v}">${l}</button>`).join('')}</div></div>
+      <div class="field"><span class="label">Umkreis</span>${mSel('fuelRad', cfg.fuel.rad, [2, 3, 5, 10, 15], 'km')}</div>
+      ${sw('fuelGps', 'Um meinen Standort suchen', 'pin', cfg.fuel.gps)}
+      <div class="field"><span class="label">Tankerkönig-Schlüssel</span>
+        <div class="srow"><input id="tkKey" type="text" value="${esc(cfg.fuel.key)}" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" autocomplete="off" autocapitalize="off" spellcheck="false"><button id="tkSave">Speichern</button></div>
+        <div class="hint">Kostenlos unter creativecommons.tankerkoenig.de registrieren. Der Schlüssel bleibt nur in diesem Browser.</div></div>
+      <div class="field"><span class="label">${ic('car')}Live-Verkehr (TomTom-Schlüssel)</span>
+        <div class="srow"><input id="ttKey" type="text" value="${esc(cfg.tomtom)}" placeholder="API-Key (optional)" autocomplete="off" autocapitalize="off" spellcheck="false"><button id="ttSave">Speichern</button></div>
+        <div class="hint">Kostenlos auf developer.tomtom.com, „Routing API“ aktivieren.</div></div>`;
+    const look = `
+      <div class="seg small" id="themeSeg">${[['auto', 'Automatisch'], ['light', 'Hell'], ['dark', 'Dunkel']].map(([v, l]) => `<button data-v="${v}" aria-pressed="${cfg.theme === v}">${l}</button>`).join('')}</div>
+      <button class="btn" id="resetCfg">Alles zurücksetzen</button>`;
+    $('sheet').innerHTML = `<h2>${ic('sliders')}Einstellungen</h2>
+      ${grp('places', 'pin', 'Orte & Bahnhöfe', places)}
+      ${grp('times', 'clock', 'Zeiten & Wecker', times)}
+      ${grp('auto', 'fuel', 'Auto & Sprit', auto)}
+      ${grp('look', 'palette', 'Darstellung', look)}
+      <button class="btn" id="closeDlg">${ic('check')}Fertig</button>`;
+
+    $('sheet').querySelectorAll('.field[data-k]').forEach(el => {
+      const f = FIELDS.find(x => x.key === el.dataset.k);
+      const input = el.querySelector('input'), res = el.querySelector('.res'), cur = el.querySelector('.cur');
+      const set = v => { cfg[f.key] = v; saveCfg(); cur.textContent = curText(f, v); input.value = ''; res.innerHTML = `<div class="hint">${ic('check')} Gespeichert</div>`; changed = true; };
+      let timer, n = 0;
+      input.oninput = () => {
+        clearTimeout(timer);
+        const t = input.value.trim();
+        if (t.length < 3) { res.innerHTML = ''; return; }
+        timer = setTimeout(async () => {
+          const my = ++n;
+          try {
+            const list = await suggest(f, t);
+            if (my !== n) return;
+            res.innerHTML = list.length ? '' : '<div class="hint">Nichts gefunden.</div>';
+            list.forEach(it => {
+              const b = document.createElement('button'); b.type = 'button'; b.textContent = it.label;
+              b.onclick = () => set(it.val);
+              res.appendChild(b);
+            });
+          } catch (e) { if (my === n) res.innerHTML = `<div class="err">${ic('alert')}<span>Suche fehlgeschlagen: ${esc(errText(e))}</span></div>`; }
+        }, 300);
+      };
+      const auto = el.querySelector('.auto');
+      if (auto) auto.onclick = () => set(null);
+      const loc = el.querySelector('.loc');
+      if (loc) loc.onclick = () => {
+        if (!navigator.geolocation) { res.innerHTML = `<div class="err">${ic('alert')}<span>Standort wird vom Browser nicht unterstützt.</span></div>`; return; }
+        res.innerHTML = '<div class="hint">Standort wird ermittelt …</div>';
+        navigator.geolocation.getCurrentPosition(async p => {
+          const lat = +p.coords.latitude.toFixed(5), lon = +p.coords.longitude.toFixed(5);
+          let label = 'Mein Standort';
+          try {
+            const r = await getJSON(`${PHOTON}/reverse?lat=${lat}&lon=${lon}&lang=de`);
+            label = (r.features[0] && placeLabel(r.features[0].properties)) || label;
+          } catch {}
+          set({ label, lat, lon });
+        }, err => {
+          res.innerHTML = `<div class="err">${ic('alert')}<span>Standort nicht verfügbar (${err.code === 1 ? 'Zugriff verweigert' : 'keine Position gefunden'}).</span></div>`;
+        }, { timeout: 10000, maximumAge: 60000 });
+      };
+    });
+    const on = (id, ev, fn) => $(id).addEventListener(ev, fn);
+    on('arriveOut', 'change', e => { cfg.arrive.out = e.target.value; saveCfg(); changed = true; });
+    on('arriveBack', 'change', e => { cfg.arrive.back = e.target.value; saveCfg(); changed = true; });
+    $('days').querySelectorAll('button').forEach(b => b.onclick = () => {
+      const d = +b.dataset.d, onn = !cfg.workdays.includes(d);
+      cfg.workdays = onn ? [...cfg.workdays, d] : cfg.workdays.filter(x => x !== d);
+      b.setAttribute('aria-pressed', onn); saveCfg(); changed = true;
+    });
+    const askNotify = async () => { if ('Notification' in window && Notification.permission === 'default') { try { await Notification.requestPermission(); } catch {} } };
+    on('remDep', 'change', e => { cfg.remind.dep = e.target.checked; saveCfg(); $('remDepRow').hidden = !cfg.remind.dep; if (cfg.remind.dep) askNotify(); });
+    on('remDepMin', 'change', e => { cfg.remind.depMin = +e.target.value; saveCfg(); });
+    on('remArr', 'change', e => { cfg.remind.arr = e.target.checked; saveCfg(); $('remArrRow').hidden = !cfg.remind.arr; if (cfg.remind.arr) askNotify(); });
+    on('remArrMin', 'change', e => { cfg.remind.arrMin = +e.target.value; saveCfg(); });
+    $('fuelSeg').querySelectorAll('button').forEach(b => b.onclick = () => {
+      cfg.fuel.type = b.dataset.v; saveCfg(); changed = true;
+      $('fuelSeg').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b));
+    });
+    on('fuelRad', 'change', e => { cfg.fuel.rad = +e.target.value; saveCfg(); changed = true; });
+    on('fuelGps', 'change', e => { cfg.fuel.gps = e.target.checked; saveCfg(); changed = true; });
+    on('tkSave', 'click', () => { cfg.fuel.key = $('tkKey').value.trim(); saveCfg(); changed = true; $('tkSave').innerHTML = ic('check'); });
+    on('ttSave', 'click', () => { cfg.tomtom = $('ttKey').value.trim(); saveCfg(); changed = true; $('ttSave').innerHTML = ic('check'); });
+    $('themeSeg').querySelectorAll('button').forEach(b => b.onclick = () => {
+      cfg.theme = b.dataset.v; saveCfg(); applyTheme();
+      $('themeSeg').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b));
+    });
+    $('resetCfg').onclick = () => { cfg = defaultCfg(); saveCfg(); applyTheme(); changed = true; openSettings(open); };
+    $('closeDlg').onclick = () => { $('dlg').close(); applyChanges(); };
+    changed = false;
+    if (!$('dlg').open) $('dlg').showModal();
+  }
+  const applyChanges = () => { if (changed) { changed = false; reset(); if (mode === 'car') setMode('car'); } };
+  $('dlg').addEventListener('close', applyChanges);
+  $('gear').onclick = () => openSettings('places');
+
+  /* ---------- Pull-to-Refresh ---------- */
   let y0 = null;
-  addEventListener('touchstart', e => { y0 = scrollY <= 0 ? e.touches[0].clientY : null; }, { passive: true });
+  addEventListener('touchstart', e => { y0 = scrollY <= 0 && !$('dlg').open ? e.touches[0].clientY : null; }, { passive: true });
   addEventListener('touchmove', e => {
     if (y0 == null) return;
     const d = e.touches[0].clientY - y0;
@@ -353,14 +1001,23 @@ footer { text-align: center; color: var(--muted); font-size: 13px; padding-top: 
     if (y0 == null) return;
     const d = e.changedTouches[0].clientY - y0;
     $('ptr').style.height = '0'; y0 = null;
-    if (d > 110) refresh();
+    if (d > 110) refresh(true);
   });
 
-  setDir(dir);
-  setInterval(refresh, 60000);
-  setInterval(() => renderWx(), 1000);
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
-  $('dirOut').setAttribute('aria-pressed', dir === 'out'); $('dirBack').setAttribute('aria-pressed', dir === 'back');
+  /* ---------- Start ---------- */
+  applyTheme();
+  renderSegs();
+  setMode(mode);
+  reset();
+  renderClock();
+  setInterval(() => refresh(), 60000);
+  setInterval(() => { renderClock(); checkReminder(); }, 1000);
+  addEventListener('online', () => refresh(true));
+  addEventListener('offline', () => refresh());
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) { renderClock(); refresh(); } });
+  if ('serviceWorker' in navigator && (location.protocol === 'https:' || ['localhost', '127.0.0.1'].includes(location.hostname))) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
 })();
 </script>
 </body>

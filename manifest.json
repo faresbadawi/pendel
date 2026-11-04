@@ -1,7 +1,8 @@
 {
+  "id": "./",
   "name": "Pendel Vöhrum ↔ Hannover",
   "short_name": "Pendel",
-  "description": "Nächster Zug und Autofahrt Vöhrum ↔ Hannover Hbf",
+  "description": "Nächster Zug, Echtzeit der DB, Auto und Spritpreise für den Arbeitsweg",
   "lang": "de",
   "start_url": "./index.html",
   "scope": "./",
