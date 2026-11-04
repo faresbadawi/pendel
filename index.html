@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Pendel</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1e4fa8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0b1b3a" media="(prefers-color-scheme: dark)">
+<meta name="color-scheme" content="light dark">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Pendel">
+<meta name="application-name" content="Pendel">
+<meta name="description" content="Pendel-Assistent Vöhrum ↔ Hannover Hbf">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root {
+  --bg1: #4f8ff0; --bg2: #2563c9; --bg3: #17407f;
+  --glass: rgba(255,255,255,.18); --glass-strong: rgba(255,255,255,.28);
+  --glass-border: rgba(255,255,255,.38);
+  --text: #fff; --muted: rgba(255,255,255,.78);
+  --ok: #16a34a; --warn: #f59e0b; --bad: #dc2626;
+  --on-warn: #1f1300;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg1: #1a3d7a; --bg2: #0f2551; --bg3: #060f24;
+    --glass: rgba(255,255,255,.08); --glass-strong: rgba(255,255,255,.16);
+    --glass-border: rgba(255,255,255,.16);
+    --muted: rgba(255,255,255,.7);
+  }
+}
+* { box-sizing: border-box; margin: 0; }
+html { background: var(--bg3); }
+body {
+  min-height: 100dvh; color: var(--text);
+  font: 16px/1.35 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: linear-gradient(170deg, var(--bg1) 0%, var(--bg2) 55%, var(--bg3) 100%) fixed;
+  padding: max(10px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right))
+           max(20px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+  overflow-x: hidden; overscroll-behavior-y: contain;
+  -webkit-tap-highlight-color: transparent;
+}
+main { display: flex; flex-direction: column; gap: 10px; max-width: 520px; margin: 0 auto; }
+.card {
+  background: var(--glass); border: 1px solid var(--glass-border); border-radius: 22px;
+  padding: 14px 16px; -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+  box-shadow: 0 6px 24px rgba(0,0,0,.18);
+}
+button { font: inherit; color: inherit; border: 0; cursor: pointer; min-height: 44px; }
+a.btn, button.btn {
+  display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px;
+  padding: 0 16px; border-radius: 14px; background: var(--glass-strong);
+  border: 1px solid var(--glass-border); color: var(--text); text-decoration: none; font-weight: 600;
+}
+a.btn:active, button:active { filter: brightness(1.15); }
+
+/* Kopfzeile */
+.bar { display: flex; gap: 8px; align-items: center; }
+.seg { flex: 1; display: flex; padding: 3px; border-radius: 16px; background: var(--glass); border: 1px solid var(--glass-border); }
+.seg button { flex: 1; border-radius: 13px; background: transparent; font-weight: 600; min-height: 44px; }
+.seg button[aria-pressed="true"] { background: #fff; color: #17407f; }
+.refresh { width: 48px; min-height: 48px; border-radius: 16px; background: var(--glass); border: 1px solid var(--glass-border); font-size: 22px; padding: 0; }
+.refresh.spin span { display: inline-block; animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+#ptr { text-align: center; color: var(--muted); font-size: 13px; height: 0; overflow: hidden; transition: height .15s; }
+
+/* Hero */
+.label { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; }
+.hero .row { display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; }
+.big { font-size: 64px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+.big em { font-style: normal; font-size: 28px; font-weight: 600; opacity: .7; margin-left: 6px; }
+.big em.old { text-decoration: line-through; text-decoration-thickness: 2px; }
+.pill { display: inline-block; padding: 6px 12px; border-radius: 999px; font-weight: 700; font-size: 15px; white-space: nowrap; }
+.pill.ok { background: var(--ok); color: #fff; }
+.pill.warn { background: var(--warn); color: var(--on-warn); }
+.pill.bad { background: var(--bad); color: #fff; }
+.facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
+.facts div { background: var(--glass); border-radius: 14px; padding: 8px 10px; }
+.facts b { display: block; font-size: 22px; font-variant-numeric: tabular-nums; }
+.facts span { font-size: 12px; color: var(--muted); }
+.line { margin-top: 8px; color: var(--muted); font-size: 14px; }
+
+/* Empfehlung */
+.rec { display: flex; gap: 12px; align-items: center; }
+.rec .ico { font-size: 32px; }
+.rec b { font-size: 18px; display: block; }
+.rec small { color: var(--muted); font-size: 14px; }
+
+/* Liste */
+.list { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+.item { display: grid; grid-template-columns: auto 1fr auto; gap: 4px 12px; align-items: center; padding: 10px 12px; min-height: 56px; border-radius: 16px; background: var(--glass); border-left: 6px solid var(--ok); }
+.item.warn { border-left-color: var(--warn); } .item.bad { border-left-color: var(--bad); }
+.item .t { font-size: 26px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.item .m { font-size: 13px; color: var(--muted); }
+.item .m b { color: var(--text); }
+
+/* Auto */
+.car { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.car .big { font-size: 48px; }
+.car .km { font-size: 24px; font-weight: 700; }
+.car + a { margin-top: 12px; }
+
+/* Wetter */
+.wx { display: flex; align-items: center; gap: 14px; }
+.wx .clock { font-size: 34px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.wx .ico { font-size: 34px; }
+.wx .temp { font-size: 28px; font-weight: 700; }
+.wx small { color: var(--muted); display: block; font-size: 13px; }
+.wx .sp { flex: 1; }
+
+.err { background: rgba(220,38,38,.9); border-radius: 14px; padding: 10px 12px; font-weight: 600; font-size: 14px; margin-top: 8px; }
+.skel { color: var(--muted); padding: 8px 0; }
+footer { text-align: center; color: var(--muted); font-size: 13px; padding-top: 4px; }
+</style>
+</head>
+<body>
+<main>
+  <div class="bar">
+    <div class="seg" role="group" aria-label="Richtung">
+      <button id="dirOut" aria-pressed="true">Hinfahrt</button>
+      <button id="dirBack" aria-pressed="false">Rückfahrt</button>
+    </div>
+    <button class="refresh" id="refresh" aria-label="Aktualisieren"><span>⟳</span></button>
+  </div>
+  <div id="ptr">Loslassen zum Aktualisieren …</div>
+
+  <section class="card hero" id="hero"><div class="skel">Lade Verbindungen …</div></section>
+  <section class="card" id="recCard" hidden></section>
+  <section class="card" id="next"><div class="label">Weitere Verbindungen</div><div class="list"></div></section>
+  <section class="card" id="car"><div class="label">Auto</div><div class="skel">Lade Fahrzeit …</div></section>
+  <section class="card wx" id="wx"><div class="skel">Lade Wetter …</div></section>
+  <footer id="stand">Stand: –</footer>
+</main>
+
+<script>
+(() => {
+  'use strict';
+  const q = new URLSearchParams(location.search);
+  const DB = (q.get('db') || 'https://v6.db.transport.rest').replace(/\/$/, '');
+  const OSRM = 'https://router.project-osrm.org';
+  const HBF_ID = '8000152';                          // Hannover Hbf (IBNR)
+  const HOME = { lat: 52.3197, lon: 10.2372 };       // Peine / Vöhrum
+  const WORK = { lat: 52.3768, lon: 9.7414 };        // Hannover Hbf – hier ggf. Büro-Koordinaten eintragen
+  const PARK_MIN = 5;                                // Puffer für Parkplatzsuche/Weg beim Auto
+  const WORK_START = '08:00';
+  const TZ = 'Europe/Berlin';
+
+  const $ = id => document.getElementById(id);
+  const fmt = d => new Date(d).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit', timeZone: TZ });
+  const berlinHour = () => +new Date().toLocaleString('de-DE', { hour: '2-digit', hour12: false, timeZone: TZ });
+  const mins = ms => Math.round(ms / 60000);
+  const dur = m => m >= 60 ? `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, '0')} min` : `${m} min`;
+  const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+  let dir = berlinHour() >= 12 ? 'back' : 'out';
+  let seq = 0;
+  const last = { trains: null, car: null };
+
+  async function getJSON(url) {
+    const ctl = new AbortController();
+    const t = setTimeout(() => ctl.abort(), 12000);
+    try {
+      const r = await fetch(url, { signal: ctl.signal });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return await r.json();
+    } finally { clearTimeout(t); }
+  }
+
+  /* ---------- Bahn ---------- */
+  async function voehrumId() {
+    try { const c = localStorage.getItem('voehrumId'); if (c) return c; } catch {}
+    const r = await getJSON(`${DB}/locations?query=${encodeURIComponent('Vöhrum')}&results=6&stops=true&addresses=false&poi=false&language=de`);
+    const st = r.filter(x => x.type === 'stop' || x.type === 'station');
+    const hit = st.find(x => /v[öo]e?hrum/i.test(x.name)) || null;
+    if (!hit) throw new Error('Haltestelle Vöhrum nicht gefunden');
+    try { localStorage.setItem('voehrumId', hit.id); } catch {}
+    return hit.id;
+  }
+
+  function parseJourney(j) {
+    const all = j.legs || [];
+    const f = all.find(l => !l.walking) || all[0], l = [...all].reverse().find(x => !x.walking) || all[all.length - 1];
+    const dep = f.departure || f.plannedDeparture, arr = l.arrival || l.plannedArrival;
+    const delay = Math.round((f.departureDelay ?? (new Date(dep) - new Date(f.plannedDeparture)) / 1000) / 60);
+    const cancelled = all.some(x => x.cancelled);
+    const rides = all.filter(x => !x.walking);
+    return {
+      dep, arr, planned: f.plannedDeparture, delay: isFinite(delay) ? delay : 0, cancelled,
+      platform: f.departurePlatform || f.plannedDeparturePlatform || '–',
+      lines: rides.map(x => x.line && x.line.name).filter(Boolean).join(' → ') || 'Zug',
+      transfers: Math.max(0, rides.length - 1),
+      minutes: mins(new Date(arr) - new Date(dep)),
+      arrDelay: Math.round((l.arrivalDelay || 0) / 60),
+    };
+  }
+  const cls = t => t.cancelled || t.delay >= 5 ? 'bad' : t.delay >= 1 ? 'warn' : 'ok';
+  const statusText = t => t.cancelled ? 'Fällt aus' : t.delay >= 1 ? `+${t.delay} min` : 'pünktlich';
+
+  async function loadTrains() {
+    const vid = await voehrumId();
+    const [from, to] = dir === 'out' ? [vid, HBF_ID] : [HBF_ID, vid];
+    const r = await getJSON(`${DB}/journeys?from=${from}&to=${to}&results=6&stopovers=false&remarks=false&language=de`);
+    const js = (r.journeys || []).map(parseJourney).filter(t => t.dep && t.arr);
+    if (!js.length) throw new Error('Keine Verbindungen gefunden');
+    return js;
+  }
+
+  function renderTrains(js) {
+    const hero = js.find(t => !t.cancelled) || js[0];
+    const rest = js.filter(t => t !== hero).slice(0, 3);
+    const wait = mins(new Date(hero.dep) - Date.now());
+    const c = cls(hero);
+    $('hero').innerHTML = `
+      <div class="label">Nächster Zug · ${dir === 'out' ? 'Vöhrum → Hannover Hbf' : 'Hannover Hbf → Vöhrum'}</div>
+      <div class="row" style="margin-top:6px">
+        <div class="big">${fmt(hero.dep)}${hero.delay >= 1 && !hero.cancelled ? `<em class="old">${fmt(hero.planned)}</em>` : ''}</div>
+        <span class="pill ${c}">${statusText(hero)}</span>
+      </div>
+      <div class="facts">
+        <div><b>${wait <= 0 ? 'jetzt' : 'in ' + wait + ' min'}</b><span>Abfahrt</span></div>
+        <div><b>Gl. ${esc(hero.platform)}</b><span>Gleis</span></div>
+        <div><b>${fmt(hero.arr)}</b><span>Ankunft</span></div>
+      </div>
+      <div class="line">${esc(hero.lines)} · ${dur(hero.minutes)}${hero.transfers ? ` · ${hero.transfers}× umsteigen` : ' · direkt'}</div>`;
+    $('next').hidden = false;
+    $('next').querySelector('.list').innerHTML = rest.length ? rest.map(t => `
+      <div class="item ${cls(t)}">
+        <div class="t">${fmt(t.dep)}</div>
+        <div class="m"><b>${esc(t.lines)}</b><br>Gl. ${esc(t.platform)} · an ${fmt(t.arr)} · ${dur(t.minutes)}</div>
+        <span class="pill ${cls(t)}">${statusText(t)}</span>
+      </div>`).join('') : '<div class="skel">Keine weiteren Verbindungen.</div>';
+    return hero;
+  }
+
+  /* ---------- Auto ---------- */
+  async function loadCar() {
+    const [a, b] = dir === 'out' ? [HOME, WORK] : [WORK, HOME];
+    const r = await getJSON(`${OSRM}/route/v1/driving/${a.lon},${a.lat};${b.lon},${b.lat}?overview=false`);
+    if (r.code !== 'Ok' || !r.routes[0]) throw new Error('Keine Route');
+    return { minutes: Math.round(r.routes[0].duration / 60), km: r.routes[0].distance / 1000, a, b };
+  }
+  function renderCar(c) {
+    const url = `https://www.google.com/maps/dir/?api=1&origin=${c.a.lat},${c.a.lon}&destination=${c.b.lat},${c.b.lon}&travelmode=driving`;
+    $('car').innerHTML = `
+      <div class="label">Auto · ${dir === 'out' ? 'Peine → Hannover' : 'Hannover → Peine'}</div>
+      <div class="car"><div class="big">${c.minutes}<em>min</em></div><div class="km">${c.km.toFixed(1).replace('.', ',')} km</div></div>
+      <div class="line">Ohne Verkehr gerechnet (OSRM)</div>
+      <a class="btn" style="margin-top:12px" href="${url}" target="_blank" rel="noopener">🗺️ Live-Verkehr in Google Maps</a>`;
+  }
+
+  /* ---------- Empfehlung ---------- */
+  function renderRec(hero, car) {
+    const el = $('recCard');
+    if (!hero || !car) { el.hidden = true; return; }
+    const wait = Math.max(0, mins(new Date(hero.dep) - Date.now()));
+    const trainTotal = wait + hero.minutes;
+    const carTotal = car.minutes + PARK_MIN;
+    let ico, head, sub;
+    if (hero.cancelled || trainTotal > carTotal + 3) {
+      ico = '🚗'; head = 'Auto nehmen';
+      sub = `Auto ≈ ${carTotal} min gesamt, Bahn ≈ ${trainTotal} min (davon ${wait} min Warten).`;
+    } else if (carTotal > trainTotal + 3) {
+      ico = '🚆'; head = 'Bahn nehmen';
+      sub = `Bahn ≈ ${trainTotal} min inkl. ${wait} min Warten, Auto ≈ ${carTotal} min (inkl. ${PARK_MIN} min Parken).`;
+    } else {
+      ico = '⚖️'; head = 'Gleichauf – Bahn entspannter';
+      sub = `Bahn ≈ ${trainTotal} min inkl. ${wait} min Warten, Auto ≈ ${carTotal} min.`;
+    }
+    let extra = '';
+    if (dir === 'out') {
+      const [h, m] = WORK_START.split(':').map(Number);
+      const start = new Date(); start.setHours(h, m, 0, 0);
+      const bestArr = Date.now() + Math.min(trainTotal, carTotal) * 60000;
+      const buf = mins(start - bestArr);
+      if (new Date().getHours() < 12) extra = buf >= 0 ? ` Puffer bis ${WORK_START}: ${buf} min.` : ` ⚠️ ${-buf} min nach ${WORK_START}.`;
+    }
+    el.hidden = false;
+    el.innerHTML = `<div class="rec"><div class="ico">${ico}</div><div><b>${head}</b><small>${sub}${extra}</small></div></div>`;
+  }
+
+  /* ---------- Wetter & Uhr ---------- */
+  const WMO = c => c === 0 ? ['☀️', 'Klar'] : c <= 2 ? ['⛅', 'Heiter'] : c === 3 ? ['☁️', 'Bedeckt'] : c <= 48 ? ['🌫️', 'Nebel']
+    : c <= 57 ? ['🌦️', 'Nieselregen'] : c <= 67 ? ['🌧️', 'Regen'] : c <= 77 ? ['🌨️', 'Schnee'] : c <= 82 ? ['🌦️', 'Schauer']
+    : c <= 86 ? ['🌨️', 'Schneeschauer'] : ['⛈️', 'Gewitter'];
+  let wx = null;
+  function renderWx(err) {
+    const clock = new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: TZ });
+    const [ico, txt] = wx ? WMO(wx.weather_code) : ['❔', ''];
+    $('wx').innerHTML = `
+      <div><div class="label">Peine</div><div class="clock">${clock}</div></div>
+      <div class="sp"></div>
+      ${wx ? `<div class="ico">${ico}</div><div><div class="temp">${Math.round(wx.temperature_2m)}°</div><small>${txt} · ${Math.round(wx.wind_speed_10m)} km/h</small></div>`
+           : `<div class="err" style="margin:0">Wetter nicht erreichbar</div>`}`;
+  }
+  async function loadWx() {
+    const r = await getJSON('https://api.open-meteo.com/v1/forecast?latitude=52.32&longitude=10.23&current=temperature_2m,weather_code,wind_speed_10m&timezone=Europe%2FBerlin');
+    wx = r.current;
+  }
+
+  /* ---------- Orchestrierung ---------- */
+  function showErr(id, msg, keep) {
+    const el = $(id); el.querySelectorAll('.err').forEach(e => e.remove());
+    if (!keep) el.innerHTML = `<div class="label">${id === 'car' ? 'Auto' : 'Bahn'}</div>`;
+    el.insertAdjacentHTML('beforeend', `<div class="err">⚠️ ${esc(msg)}</div>`);
+  }
+
+  async function refresh() {
+    const my = ++seq;
+    $('refresh').classList.add('spin');
+    const ok = [];
+    const trains = loadTrains().then(js => { if (my !== seq) return; last.trains = js; ok.push(1); }, e => {
+      if (my !== seq) return;
+      const msg = `Bahn-API (${new URL(DB).host}) antwortet nicht: ${e.message === 'The user aborted a request.' || e.name === 'AbortError' ? 'Zeitüberschreitung' : e.message}`;
+      showErr('hero', msg, !!last.trains);
+      if (!last.trains) $('next').hidden = true;
+    });
+    const car = loadCar().then(c => { if (my !== seq) return; last.car = c; ok.push(1); }, e => {
+      if (my !== seq) return;
+      showErr('car', `Auto-Route (OSRM) nicht erreichbar: ${e.name === 'AbortError' ? 'Zeitüberschreitung' : e.message}`, !!last.car);
+    });
+    const weather = loadWx().catch(() => { wx = null; });
+    await Promise.all([trains, car, weather]);
+    if (my !== seq) return;
+    let hero = null;
+    if (last.trains) {
+      const hadErr = $('hero').querySelector('.err');
+      hero = renderTrains(last.trains);
+      if (hadErr) showErr('hero', 'Bahn-API nicht erreichbar – zeige letzte Daten', true);
+    }
+    if (last.car && !$('car').querySelector('.err')) renderCar(last.car);
+    renderRec(hero, last.car);
+    renderWx();
+    $('stand').textContent = 'Stand: ' + new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: TZ });
+    $('refresh').classList.remove('spin');
+  }
+
+  function setDir(d) {
+    dir = d; last.trains = last.car = null;
+    $('dirOut').setAttribute('aria-pressed', d === 'out');
+    $('dirBack').setAttribute('aria-pressed', d === 'back');
+    $('hero').innerHTML = '<div class="skel">Lade Verbindungen …</div>';
+    $('next').hidden = true;
+    $('car').innerHTML = '<div class="label">Auto</div><div class="skel">Lade Fahrzeit …</div>';
+    $('recCard').hidden = true;
+    refresh();
+  }
+  $('dirOut').onclick = () => setDir('out');
+  $('dirBack').onclick = () => setDir('back');
+  $('refresh').onclick = refresh;
+
+  /* Pull-to-Refresh */
+  let y0 = null;
+  addEventListener('touchstart', e => { y0 = scrollY <= 0 ? e.touches[0].clientY : null; }, { passive: true });
+  addEventListener('touchmove', e => {
+    if (y0 == null) return;
+    const d = e.touches[0].clientY - y0;
+    $('ptr').style.height = d > 20 ? Math.min(d / 3, 40) + 'px' : '0';
+  }, { passive: true });
+  addEventListener('touchend', e => {
+    if (y0 == null) return;
+    const d = e.changedTouches[0].clientY - y0;
+    $('ptr').style.height = '0'; y0 = null;
+    if (d > 110) refresh();
+  });
+
+  setDir(dir);
+  setInterval(refresh, 60000);
+  setInterval(() => renderWx(), 1000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
+  $('dirOut').setAttribute('aria-pressed', dir === 'out'); $('dirBack').setAttribute('aria-pressed', dir === 'back');
+})();
+</script>
+</body>
+</html>
