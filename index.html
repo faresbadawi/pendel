@@ -75,7 +75,10 @@ a { color: inherit; }
 .time { min-width: 0; }
 .clock { font-size: 60px; font-weight: 300; font-variant-numeric: tabular-nums; line-height: .95; letter-spacing: -.045em; }
 .date { margin-top: 6px; font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
-.wx { display: flex; align-items: center; gap: 12px; padding: 10px 14px 10px 12px; border-radius: 22px; background: var(--glass); border: 1px solid var(--glass-border); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); box-shadow: 0 6px 24px rgba(0,0,0,.14); flex: none; }
+.wx { display: flex; flex-direction: column; align-items: stretch; gap: 6px; padding: 10px 14px 9px 12px; border-radius: 22px; background: var(--glass); border: 1px solid var(--glass-border); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); box-shadow: 0 6px 24px rgba(0,0,0,.14); flex: none; }
+.wx .wtop { display: flex; align-items: center; gap: 12px; }
+.wx .wp { display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 700; color: var(--muted); max-width: 190px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wx .wp .ic { width: 14px; height: 14px; }
 .wx .wm { display: flex; align-items: center; gap: 10px; }
 .wx .wm .ic { width: 44px; height: 44px; stroke-width: 1.4; }
 .wx .t { font-size: 34px; font-weight: 700; line-height: 1; letter-spacing: -.03em; }
@@ -87,7 +90,7 @@ a { color: inherit; }
 .wx .wr.wet b { color: #04243a; }
 .ctl { display: flex; gap: 8px; align-items: center; }
 .ctl .seg { flex: 1; }
-.icon-btn { width: 52px; min-height: 52px; border-radius: 16px; background: var(--glass); border: 1px solid var(--glass-border); padding: 0; flex: none; display: grid; place-items: center; }
+.icon-btn { position: relative; width: 46px; min-height: 52px; border-radius: 16px; background: var(--glass); border: 1px solid var(--glass-border); padding: 0; flex: none; display: grid; place-items: center; }
 .icon-btn .ic { width: 22px; height: 22px; vertical-align: 0; }
 .icon-btn.spin .ic { animation: spin .8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
@@ -98,6 +101,28 @@ a { color: inherit; }
 #ptr { text-align: center; color: var(--muted); font-size: 13px; height: 0; overflow: hidden; transition: height .15s; }
 
 /* Zug */
+.badge { position: absolute; top: 2px; right: 2px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 99px; background: var(--bad); color: #fff; font-size: 11px; font-weight: 800; line-height: 18px; text-align: center; box-shadow: 0 0 0 2px rgba(0,0,0,.25); }
+.icon-btn.hot { background: var(--warn); color: var(--on-warn); border-color: transparent; }
+.tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.tiles div { background: var(--glass); border-radius: 16px; padding: 10px 12px; }
+.tiles b { display: block; font-size: 24px; font-variant-numeric: tabular-nums; }
+.tiles span { font-size: 12px; color: var(--muted); }
+.wk { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-weight: 700; }
+.wk button { width: 44px; border-radius: 14px; background: var(--glass); border: 1px solid var(--glass-border); }
+.dayrow { display: grid; grid-template-columns: 74px 1fr; gap: 8px; align-items: center; }
+.dayrow .dn { font-weight: 700; font-size: 14px; line-height: 1.15; }
+.dayrow .dn small { display: block; color: var(--muted); font-weight: 600; }
+.dayrow.today .dn { color: #fff; text-decoration: underline; }
+.drow { display: grid; grid-template-columns: 34px 1fr 1fr; gap: 6px; align-items: center; font-weight: 700; font-size: 14px; }
+.drow input { height: 42px !important; padding: 0 8px !important; }
+.inc { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: 14px; background: var(--glass); font-size: 14px; }
+.inc .ic { margin-top: 2px; }
+.inc b { display: block; }
+.inc small { display: block; color: var(--muted); font-size: 13px; margin-top: 2px; }
+.inc.bad { background: var(--bad); color: #fff; } .inc.bad small { color: rgba(255,255,255,.85); }
+.inc.warn { background: var(--warn); color: var(--on-warn); } .inc.warn small { color: rgba(31,19,0,.75); }
+.sec { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 700; margin-top: 4px; }
+.stack { display: flex; flex-direction: column; gap: 8px; }
 .label { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 700; display: flex; align-items: center; gap: 6px; }
 .label .grow { flex: 1; }
 .dbchip { display: inline-flex; align-items: center; gap: 3px; padding: 2px 8px; border-radius: 999px; background: var(--glass-strong); color: var(--text); font-size: 11px; letter-spacing: .04em; font-weight: 800; }
@@ -260,6 +285,8 @@ button:disabled { opacity: .45; cursor: default; }
   <div class="ctl">
     <div class="seg" id="modeSeg" role="group" aria-label="Verkehrsmittel"></div>
     <button class="icon-btn" id="refresh" aria-label="Aktualisieren"></button>
+    <button class="icon-btn" id="statBtn" aria-label="Wochenübersicht"></button>
+    <button class="icon-btn" id="infoBtn" aria-label="Störungen"></button>
     <button class="icon-btn" id="gear" aria-label="Einstellungen"></button>
   </div>
   <section class="card banner" id="alert" hidden></section>
@@ -283,6 +310,9 @@ button:disabled { opacity: .45; cursor: default; }
 <dialog id="wiz" class="wizard">
   <div class="sheet" id="wizSheet"></div>
 </dialog>
+
+<dialog id="stats"><div class="sheet" id="statSheet"></div></dialog>
+<dialog id="info"><div class="sheet" id="infoSheet"></div></dialog>
 
 <dialog id="dlg">
   <div class="sheet" id="sheet"></div>
@@ -330,6 +360,7 @@ button:disabled { opacity: .45; cursor: default; }
     rain: '<path d="M4 14.9A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.24"/><path d="M16 14v6"/><path d="M8 14v6"/><path d="M12 16v6"/>',
     snow: '<path d="M4 14.9A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.24"/><path d="M8 15h.01"/><path d="M8 19h.01"/><path d="M12 17h.01"/><path d="M12 21h.01"/><path d="M16 15h.01"/><path d="M16 19h.01"/>',
     storm: '<path d="M6 16.33A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 .5 8.97"/><path d="m13 12-3 5h4l-3 5"/>',
+    chart: '<path d="M3 3v18h18"/><path d="M7 16v-4"/><path d="M12 16V8"/><path d="M17 16v-7"/>',
     drop: '<path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/>',
     euro: '<path d="M4 10h12"/><path d="M4 14h9"/><path d="M19 6a7.7 7.7 0 0 0-5.2-2A7.9 7.9 0 0 0 6 12c0 4.4 3.5 8 7.8 8 2 0 3.8-.8 5.2-2"/>',
   };
@@ -340,7 +371,8 @@ button:disabled { opacity: .45; cursor: default; }
   /* ---------- Einstellungen ---------- */
   const defaultCfg = () => ({
     home: null, work: null, homeStation: null, workStation: null,      // werden bei der ersten Einrichtung abgefragt
-    arrive: { out: '', back: '' },
+    arrive: { out: '', back: '' }, perDay: false, days: {},             // days[0..6] = { out, back }
+    notifyDisr: false,
     workdays: [1, 2, 3, 4, 5],
     remind: { dep: false, depMin: 10, who: 'train' },        // who: train | car | both
     cons: 7,                                                           // Verbrauch in l pro 100 km
@@ -614,14 +646,21 @@ button:disabled { opacity: .45; cursor: default; }
   }
 
   /* ---------- Ankunftsziel: spätester Zug ---------- */
+  const timeFor = (w, dow) => cfg.perDay ? ((cfg.days || {})[dow] || {})[w] || '' : cfg.arrive[w];
+  // Nächster Zeitpunkt, zu dem man ankommen will (je Wochentag eigene Zeit, falls eingestellt).
   function targetDate(w = dir) {
-    const v = cfg.arrive[w];
-    if (!v) return null;
-    const [h, m] = v.split(':').map(Number);
-    const d = new Date(); d.setHours(h, m, 0, 0);
-    if (d < Date.now()) d.setDate(d.getDate() + 1);
-    return d;
+    for (let i = 0; i <= 7; i++) {
+      const d = new Date(); d.setDate(d.getDate() + i);
+      const v = timeFor(w, d.getDay());
+      if (!v) { if (!cfg.perDay) return null; continue; }
+      const [h, m] = v.split(':').map(Number); d.setHours(h, m, 0, 0);
+      if (d < Date.now()) continue;
+      if (cfg.perDay && !cfg.workdays.includes(d.getDay())) continue;
+      return d;
+    }
+    return null;
   }
+  const dayWord = t => { const n = Math.round((new Date(t).setHours(0, 0, 0, 0) - new Date().setHours(0, 0, 0, 0)) / 864e5); return n <= 0 ? 'heute' : n === 1 ? 'morgen' : new Intl.DateTimeFormat('de-DE', { weekday: 'long', timeZone: TZ }).format(t); };
   const dlCache = {};
   async function loadDeadline(d = dir) {
     const target = targetDate(d);
@@ -648,11 +687,11 @@ button:disabled { opacity: .45; cursor: default; }
     const solo = html => { el.hidden = false; el.innerHTML = html; el.querySelector('.note').style.marginTop = '0'; };
     if (!isWorkday(t0)) { solo(note('', 'info', 'Kein Arbeitstag – Ankunftsziel und Erinnerung pausieren.')); return; }
     if (!d) { el.hidden = true; return; }
-    const { target } = d, want = cfg.arrive[dir];
+    const { target } = d, want = fmt(target);
     const { best, planned } = pickBest(d);
     if (!best) { solo(note('bad', 'alert', `Kein Zug erreicht ${esc(want)} Uhr – Auto nehmen oder früher losfahren.`)); return; }
     const buf = mins(target - new Date(best.arr));
-    const day = target.toDateString() === new Date().toDateString() ? 'heute' : 'morgen';
+    const day = dayWord(target);
     const k = buf >= 10 ? 'ok' : buf >= 3 ? 'warn' : 'bad';
     let extra = '';
     if (planned && planned !== best) extra = note('warn', 'alert', `Planmäßig ${fmt(planned.planned)} ${esc(planned.lines)} – ${planned.cancelled ? 'fällt aus' : `kommt zu spät (+${planned.delay} min)`}. Nimm ${fmt(best.dep)}.`);
@@ -678,6 +717,7 @@ button:disabled { opacity: .45; cursor: default; }
     if (r.code !== 'Ok' || !r.routes[0]) throw new Error('Keine Route');
     return { minutes: Math.round(r.routes[0].duration / 60), km: r.routes[0].distance / 1000, live: false, a, b };
   }
+  let stat = (() => { try { return JSON.parse(localStorage.getItem('pendelStat') || '{}'); } catch { return {}; } })();   // zuletzt bekannte km und Spritpreis
   // Günstigster Preis aus den zuletzt geladenen Tankstellen (Tankerkönig).
   const cheapest = () => { const l = last.fuel && last.fuel.list; return l && l.length ? l.reduce((a, s) => s.price < a.price ? s : a) : null; };
   const eur = x => x.toFixed(2).replace('.', ',') + ' €';
@@ -695,7 +735,7 @@ button:disabled { opacity: .45; cursor: default; }
     const nm = l => esc(l.replace(' (Standard)', '').split(',')[0]);
     const cons = +cfg.cons > 0 ? +cfg.cons : 0, litres = c.km * cons / 100, st = cheapest();
     const cost = cons && st ? litres * st.price : null;
-    const leave = carLeave(), want = cfg.arrive[dir];
+    const leave = carLeave(), want = leave ? fmt(targetDate()) : '';
     $('car').innerHTML = `
       <div class="label">${ic('car')}<span>${nm(c.a.label)} → ${nm(c.b.label)}</span></div>
       <div class="car"><div class="big">${c.minutes}<em>min</em></div><div class="km">${c.km.toFixed(1).replace('.', ',')} km</div></div>
@@ -716,6 +756,7 @@ button:disabled { opacity: .45; cursor: default; }
       </div>`;
     const b = $('toSettings'); if (b) b.onclick = () => openSettings('auto');
     const k = $('toFuelKey'); if (k) k.onclick = () => openSettings('auto');
+    if (c.km) { stat.km = c.km; if (st) stat.price = st.price; try { localStorage.setItem('pendelStat', JSON.stringify(stat)); } catch {} }
   }
 
   /* ---------- Spritpreise (Tankerkönig / MTS-K) ---------- */
@@ -805,15 +846,37 @@ button:disabled { opacity: .45; cursor: default; }
     const [icon, txt] = WMO(wx.weather_code);
     el.hidden = false;
     const rain = wx.rain;
-    el.innerHTML = `<div class="wm">${ic(icon)}<div><div class="t">${Math.round(wx.temperature_2m)}°</div><div class="c">${txt}</div></div></div>`
-      + (rain == null ? '' : `<div class="wr ${rain >= 50 ? 'wet' : ''}" title="Regenwahrscheinlichkeit in den nächsten 6 Stunden">${ic('drop')}<b>${rain} %</b>Regen</div>`);
+    el.innerHTML = `<div class="wtop"><div class="wm">${ic(icon)}<div><div class="t">${Math.round(wx.temperature_2m)}°</div><div class="c">${txt}</div></div></div>`
+      + (rain == null ? '' : `<div class="wr ${rain >= 50 ? 'wet' : ''}" title="Regenwahrscheinlichkeit in den nächsten 6 Stunden">${ic('drop')}<b>${rain} %</b>Regen</div>`)
+      + `</div>` + (wx.place ? `<div class="wp" title="${wx.gps ? 'Dein Standort' : 'Zuhause'}">${ic(wx.gps ? 'locate' : 'pin')}<span>${esc(wx.place)}</span></div>` : '');
   }
+  const placeCache = {};
+  async function placeName(lat, lon) {
+    const k = lat.toFixed(2) + ',' + lon.toFixed(2);
+    if (placeCache[k]) return placeCache[k];
+    try {
+      const r = await getJSON(`${PHOTON}/reverse?lat=${lat}&lon=${lon}&lang=de`, 0, 8000);
+      const p = (r.features[0] || {}).properties || {};
+      return (placeCache[k] = p.city || p.town || p.village || p.district || p.county || p.name || '');
+    } catch { return ''; }
+  }
+  async function fetchWx(w) {
+    const r = await getJSON(`https://api.open-meteo.com/v1/forecast?latitude=${w.lat}&longitude=${w.lon}&current=temperature_2m,weather_code&hourly=precipitation_probability&forecast_hours=6&timezone=Europe%2FBerlin`);
+    const p = ((r.hourly || {}).precipitation_probability || []).filter(x => x != null);
+    const place = w.gps ? await placeName(w.lat, w.lon) : String(cfg.home.label).split(',').pop().replace(/^\s*\d{4,5}\s*/, '').trim();
+    wx = { ...r.current, rain: p.length ? Math.max(...p) : null, place, gps: !!w.gps };   // Regen: höchste Wahrscheinlichkeit der nächsten 6 Stunden
+  }
+  let gpsTry = 0;
+  // Wetter und Ortsname für den aktuellen Standort (wenn freigegeben), sonst für Zuhause.
   async function loadWx() {
     const h = cfg.home;
     if (!h) return;
-    const r = await getJSON(`https://api.open-meteo.com/v1/forecast?latitude=${h.lat}&longitude=${h.lon}&current=temperature_2m,weather_code&hourly=precipitation_probability&forecast_hours=6&timezone=Europe%2FBerlin`);
-    const p = ((r.hourly || {}).precipitation_probability || []).filter(x => x != null);
-    wx = { ...r.current, rain: p.length ? Math.max(...p) : null };    // höchste Regenwahrscheinlichkeit der nächsten 6 Stunden
+    const fresh = pos && Date.now() - pos.ts < 600000;
+    await fetchWx(fresh ? pos : { lat: h.lat, lon: h.lon, gps: false });
+    if (!fresh && cfg.fuel.gps && Date.now() - gpsTry > 300000) {         // Standort im Hintergrund holen, Anzeige danach aktualisieren
+      gpsTry = Date.now();
+      position().then(p => p.gps ? fetchWx(p).then(renderSub) : null).catch(() => {});
+    }
   }
 
   /* ---------- Erinnerung vor dem Losgehen ---------- */
@@ -849,7 +912,7 @@ button:disabled { opacity: .45; cursor: default; }
     const out = [];
     for (const d of ['out', 'back']) {
       const t = targetDate(d), data = d === dir ? last : remData[d];
-      const want = cfg.arrive[d];
+      const want = t ? fmt(t) : '';
       if (!t || !isWorkday(t) || !data) continue;
       if (wantsTrain() && data.dl) {
         const tr = pickBest(data.dl).best;
@@ -872,6 +935,134 @@ button:disabled { opacity: .45; cursor: default; }
     const m = Math.max(0, Math.round(Math.min(...due.map(e => e.diff)) / 60000));
     showAlert(m ? `In ${m} min losgehen` : 'Jetzt losgehen', due.map(e => `Losgehen ${fmt(e.at)}: ${e.text}`).join('\n'));
   }
+
+  /* ---------- Störungen: Bahn (aus den Echtzeitdaten) und Autobahn (Autobahn-App-Schnittstelle) ---------- */
+  const AUTOBAHN = 'https://verkehr.autobahn.de/o/autobahn';
+  const inc = { road: [], roads: [], err: null };
+  const routeCache = {}, incCache = {};
+  const seenIssues = new Set();
+  let primed = false;
+  const kmDist = (a, b) => Math.hypot((a[0] - b[0]) * 111.3 * Math.cos(a[1] * Math.PI / 180), (a[1] - b[1]) * 111.3);
+  const bearing = (a, b) => Math.atan2((b[0] - a[0]) * Math.cos(a[1] * Math.PI / 180), b[1] - a[1]);
+  async function routeGeo() {
+    const { a, b } = ends();
+    const k = `${a.lat},${a.lon}>${b.lat},${b.lon}`;
+    if (routeCache[k]) return routeCache[k];
+    const r = await getJSON(`${OSRM}/route/v1/driving/${a.lon},${a.lat};${b.lon},${b.lat}?overview=full&geometries=geojson&steps=true`, 1, 15000);
+    const rt = r.routes && r.routes[0];
+    if (!rt) throw new Error('Keine Route');
+    const roads = new Set();
+    rt.legs.forEach(l => l.steps.forEach(st => String(st.ref || '').split(';').forEach(x => { const m = x.trim().match(/^A\s?(\d+)$/); if (m) roads.add('A' + m[1]); })));
+    return (routeCache[k] = { pts: rt.geometry.coordinates, roads: [...roads] });
+  }
+  async function loadIncidents() {
+    const g = await routeGeo();
+    const ck = g.roads.join(',') + '|' + dir;
+    const c = incCache[ck];
+    if (c && Date.now() - c.ts < 300000) return c.v;
+    const out = [];
+    for (const road of g.roads) {
+      for (const kind of ['warning', 'closure']) {
+        const r = await getJSON(`${AUTOBAHN}/${road}/services/${kind}`, 1, 10000).catch(() => null);
+        for (const w of (r && r[kind]) || []) {
+          if (w.future || !w.coordinate) continue;
+          const p = [w.coordinate.long, w.coordinate.lat];
+          let best = 1e9, bi = 0;
+          g.pts.forEach((q, i) => { const dd = kmDist(p, q); if (dd < best) { best = dd; bi = i; } });
+          if (best > 1.5) continue;                                                // nicht auf deiner Strecke
+          const gp = w.geometry && w.geometry.coordinates;
+          if (gp && gp.length > 1 && g.pts[bi + 8]) {                              // Gegenrichtung ausblenden
+            const diff = Math.abs(bearing(g.pts[bi], g.pts[Math.min(bi + 8, g.pts.length - 1)]) - bearing(gp[0], gp[gp.length - 1]));
+            if (Math.min(diff, 2 * Math.PI - diff) > Math.PI / 2) continue;
+          }
+          out.push({ key: 'road|' + w.identifier, title: w.title, sub: (w.subtitle || '').trim(), delay: +w.delayTimeValue || 0, blocked: kind === 'closure' || w.isBlocked === 'true',
+            lines: (w.description || []).filter(x => x && !/^Beginn:/.test(x)).slice(0, 5) });
+        }
+      }
+    }
+    out.sort((x, y) => (y.blocked - x.blocked) || (y.delay - x.delay));
+    incCache[ck] = { ts: Date.now(), v: { list: out, roads: g.roads } };
+    return incCache[ck].v;
+  }
+  function railIssues() {
+    const out = [];
+    (last.trains || []).filter(future).slice(0, 5).forEach(t => {
+      const head = `${fmt(t.planned)} ${t.lines}`;
+      if (t.cancelled) out.push({ key: `rail|${t.planned}|${t.lines}|x`, kind: 'bad', title: `Fällt aus: ${head}`, sub: `${t.fromName} → ${t.toName}` });
+      else if (t.delay >= 5) out.push({ key: `rail|${t.planned}|${t.lines}|d`, kind: 'warn', title: `+${t.delay} min: ${head}`, sub: `${t.fromName} → ${t.toName}` });
+      if (t.missed) out.push({ key: `rail|${t.planned}|m`, kind: 'bad', title: `Anschluss in ${t.via} wird verpasst`, sub: `Nächster Zug ${t.missedTo}` });
+      (t.notes || []).forEach(n => { if (!out.some(x => x.title === n)) out.push({ key: `rail|${n}`, kind: '', title: n, sub: head }); });
+    });
+    return out;
+  }
+  function renderInfoBtn() {
+    const rail = railIssues(), road = inc.road, n = rail.length + road.length;
+    const hot = rail.some(x => x.kind === 'bad') || road.some(x => x.blocked || x.delay >= 10);
+    const b = $('infoBtn');
+    b.innerHTML = ic('info') + (n ? `<span class="badge">${n}</span>` : '');
+    b.classList.toggle('hot', hot);
+    const keys = [...rail, ...road].map(x => x.key), fresh = keys.filter(k => !seenIssues.has(k));
+    keys.forEach(k => seenIssues.add(k));
+    if (primed && fresh.length && cfg.notifyDisr) {
+      const f = [...rail, ...road].find(x => x.key === fresh[0]);
+      showAlert(fresh.length > 1 ? `${fresh.length} neue Störungen` : 'Neue Störung', f.title);
+    }
+    primed = true;
+  }
+  function openInfo() {
+    const rail = railIssues(), road = inc.road;
+    const e = configured() ? ends() : null;
+    const item = (kind, icon, title, sub, more = '') => `<div class="inc ${kind}">${ic(icon)}<div><b>${esc(title)}</b>${sub ? `<small>${esc(sub)}</small>` : ''}${more}</div></div>`;
+    const railHtml = rail.length ? rail.map(x => item(x.kind, x.kind === 'bad' ? 'ban' : x.kind === 'warn' ? 'alert' : 'info', x.title, x.sub)).join('') : item('', 'check', 'Keine Störungen gemeldet', 'Bei den nächsten Zügen ist alles planmäßig.');
+    const roadHtml = inc.err ? item('', 'alert', 'Autobahn-Meldungen nicht erreichbar', inc.err)
+      : road.length ? road.map(x => item(x.blocked ? 'bad' : x.delay >= 10 ? 'warn' : '', x.blocked ? 'ban' : 'car', x.title, [x.sub, x.delay ? `${x.delay} min Verzögerung` : ''].filter(Boolean).join(' · '), x.lines.length ? `<small>${x.lines.map(esc).join('<br>')}</small>` : '')).join('')
+      : item('', 'check', 'Keine Störungen auf der Strecke', inc.roads.length ? `Geprüft: ${inc.roads.join(', ')}` : 'Auf deiner Strecke liegt keine Autobahn.');
+    $('infoSheet').innerHTML = `<h2>${ic('info')}Störungen</h2>
+      <div class="sec">Bahn${e ? ' · ' + esc(clean((e.sa || {}).name || '')) : ''}</div><div class="stack">${railHtml}</div>
+      <div class="sec">Autobahn${e ? ' · ' + esc(ends().a.label.split(',')[0]) + ' → ' + esc(ends().b.label.split(',')[0]) : ''}</div><div class="stack">${roadHtml}</div>
+      <div class="hint">Quellen: DB-Echtzeitdaten, Autobahn GmbH (Verkehrsmeldungen). Die Zahl am Symbol zeigt, wie viele Meldungen auf deiner aktuellen Strecke gerade vorliegen.</div>
+      <button class="btn" id="infoClose">${ic('check')}Schließen</button>`;
+    $('infoClose').onclick = () => $('info').close();
+    if (!$('info').open) $('info').showModal();
+  }
+
+  /* ---------- Wochenübersicht ---------- */
+  const loadLog = () => { try { return JSON.parse(localStorage.getItem('pendelLog') || '{}'); } catch { return {}; } };
+  const saveLog = l => { try { localStorage.setItem('pendelLog', JSON.stringify(l)); } catch {} };
+  const dayKey = d => new Date(d).toLocaleDateString('sv-SE', { timeZone: TZ });
+  let weekOff = 0;
+  function renderStats() {
+    const log = loadLog(), now = new Date();
+    const mon = new Date(now); mon.setDate(now.getDate() - ((now.getDay() + 6) % 7) + weekOff * 7); mon.setHours(12, 0, 0, 0);
+    const days = [...Array(7)].map((_, i) => { const d = new Date(mon); d.setDate(mon.getDate() + i); return d; });
+    const today = dayKey(now);
+    const tr = days.filter(d => log[dayKey(d)] === 'train').length, ca = days.filter(d => log[dayKey(d)] === 'car').length;
+    const cons = +cfg.cons || 0, trip = stat.km && stat.price && cons ? stat.km * 2 * cons / 100 * stat.price : 0;    // Hin- und Rückfahrt
+    const wk = Math.ceil((((mon - new Date(mon.getFullYear(), 0, 1)) / 864e5) + new Date(mon.getFullYear(), 0, 1).getDay() + 1) / 7);
+    const dm = new Intl.DateTimeFormat('de-DE', { day: 'numeric', month: 'short' }), wd = new Intl.DateTimeFormat('de-DE', { weekday: 'short' });
+    const money = x => trip ? eur(x) : '–';
+    $('statSheet').innerHTML = `<h2>${ic('chart')}Wochenübersicht</h2>
+      <div class="wk"><button id="wkPrev" aria-label="Vorherige Woche">‹</button><span>${weekOff === 0 ? 'Diese Woche' : 'Woche'} · ${dm.format(days[0])} – ${dm.format(days[6])}</span><button id="wkNext" aria-label="Nächste Woche" ${weekOff >= 0 ? 'disabled' : ''}>›</button></div>
+      <div class="tiles">
+        <div><b>${tr}</b><span>Tage mit dem Zug</span></div>
+        <div><b>${ca}</b><span>Tage mit dem Auto</span></div>
+        <div><b>${money(ca * trip)}</b><span>Spritkosten (geschätzt)</span></div>
+        <div><b>${money(tr * trip)}</b><span>Sprit gespart durch Zug</span></div>
+      </div>
+      <div class="sec">Wie bist du gefahren?</div>
+      <div class="stack">${days.map(d => { const k = dayKey(d), v = log[k], fut = k > today; return `
+        <div class="dayrow ${k === today ? 'today' : ''}"><div class="dn">${wd.format(d)}<small>${dm.format(d)}</small></div>
+          <div class="seg small" data-k="${k}">${[['train', 'Zug'], ['car', 'Auto'], ['', '–']].map(([m, l]) => `<button data-v="${m}" aria-pressed="${(v || '') === m}" ${fut ? 'disabled' : ''}>${l}</button>`).join('')}</div></div>`; }).join('')}</div>
+      <div class="hint">${trip ? `Schätzung mit Hin- und Rückfahrt (${num1(stat.km * 2)} km), ${num1(cons)} l/100 km und dem zuletzt bekannten günstigsten Preis (${stat.price.toFixed(3).replace('.', ',')} €/l).` : 'Für die Kosten braucht die App einmal die Auto-Ansicht mit geladenen Spritpreisen (Tankerkönig-Schlüssel) und den Verbrauch in den Einstellungen.'} Alles bleibt nur auf diesem Gerät.</div>
+      <button class="btn" id="statClose">${ic('check')}Schließen</button>`;
+    $('statSheet').querySelectorAll('.dayrow .seg').forEach(g => g.querySelectorAll('button').forEach(b => b.onclick = () => {
+      const l = loadLog(); if (b.dataset.v) l[g.dataset.k] = b.dataset.v; else delete l[g.dataset.k]; saveLog(l); renderStats();
+    }));
+    $('wkPrev').onclick = () => { weekOff--; renderStats(); };
+    $('wkNext').onclick = () => { weekOff++; renderStats(); };
+    $('statClose').onclick = () => $('stats').close();
+  }
+  function openStats() { weekOff = 0; renderStats(); if (!$('stats').open) $('stats').showModal(); }
 
   /* ---------- Orchestrierung ---------- */
   function showErr(id, label, msg, keep, icon = 'train') {
@@ -934,6 +1125,10 @@ button:disabled { opacity: .45; cursor: default; }
     try { last.dl = trainsErr ? last.dl : await loadDeadline(); } catch { last.dl = null; }
     if (my !== seq) return;
     renderDeadline(last.dl);
+    renderInfoBtn();
+    try { const v = await loadIncidents(); inc.road = v.list; inc.roads = v.roads; inc.err = null; } catch (e) { inc.err = errText(e); }
+    if (my !== seq) return;
+    renderInfoBtn();
     if (cfg.remind.dep) for (const d of ['out', 'back']) if (d !== dir && my === seq) await loadRemData(d);
     if (carVisible()) await refreshFuel();
   }
@@ -986,6 +1181,10 @@ button:disabled { opacity: .45; cursor: default; }
   $('refresh').onclick = () => refresh(true);
   $('refresh').innerHTML = ic('refresh');
   $('gear').innerHTML = ic('sliders');
+  $('statBtn').innerHTML = ic('chart');
+  $('infoBtn').innerHTML = ic('info');
+  $('infoBtn').onclick = openInfo;
+  $('statBtn').onclick = openStats;
 
   /* ---------- Einstellungsfenster ---------- */
   const FIELDS = [
@@ -1085,13 +1284,22 @@ button:disabled { opacity: .45; cursor: default; }
         <div class="pk"></div>
         ${f.kind === 'stop' ? '<button type="button" class="btn auto">Automatisch (nächster Bahnhof)</button>' : ''}
       </div>`).join('') + '<div class="hint">Die Bahn wird von Bahnhof zu Bahnhof gerechnet. Ohne Auswahl nimmt die App den nächsten Bahnhof zur Adresse.</div>';
+    const dayOrder = [1, 2, 3, 4, 5, 6, 0];
     const times = `
-      <div class="field"><span class="label">${ic('flag')}Zur Arbeit: ankommen bis</span><input type="time" id="arriveOut" value="${esc(cfg.arrive.out)}"></div>
-      <div class="field"><span class="label">${ic('flag')}Nach Hause: ankommen bis</span><input type="time" id="arriveBack" value="${esc(cfg.arrive.back)}"></div>
-      <div class="hint">Daraus wird die späteste Abfahrt berechnet (Zug und Auto). Leer lassen zum Ausschalten.</div>
+      <div class="stack" id="defTimes" ${cfg.perDay ? 'hidden' : ''}>
+        <div class="field"><span class="label">${ic('flag')}Zur Arbeit: ankommen bis</span><input type="time" id="arriveOut" value="${esc(cfg.arrive.out)}"></div>
+        <div class="field"><span class="label">${ic('flag')}Nach Hause: ankommen bis</span><input type="time" id="arriveBack" value="${esc(cfg.arrive.back)}"></div>
+      </div>
+      ${sw('perDay', 'Für jeden Tag eigene Zeiten', 'clock', cfg.perDay)}
+      <div class="stack" id="dayGrid" ${cfg.perDay ? '' : 'hidden'}>
+        <div class="drow"><span></span><span class="hint">Zur Arbeit</span><span class="hint">Nach Hause</span></div>
+        ${dayOrder.map(n => `<div class="drow"><span>${DAYS.find(x => x[0] === n)[1]}</span>${['out', 'back'].map(w => `<input type="time" data-dw="${n}" data-w="${w}" value="${esc(((cfg.days || {})[n] || {})[w] || '')}">`).join('')}</div>`).join('')}
+      </div>
+      <div class="hint">Daraus wird die späteste Abfahrt berechnet (Zug und Auto). Leer lassen = kein Ziel an diesem Tag.</div>
       <div class="field"><span class="label">Arbeitstage</span><div class="days" id="days">${DAYS.map(([n, l]) => `<button type="button" data-d="${n}" aria-pressed="${cfg.workdays.includes(n)}">${l}</button>`).join('')}</div></div>
       <div class="field"><span class="label">${ic('bell')}Erinnerung vor dem Losgehen</span>${remSel('remMin', cfg.remind.dep ? cfg.remind.depMin : 0)}</div>
       <div class="field"><span class="label">Erinnerung für</span>${whoSel('remWho', cfg.remind.who)}</div>
+      ${sw('notifyDisr', 'Bei neuen Störungen benachrichtigen', 'alert', cfg.notifyDisr)}
       <button type="button" class="btn" id="remTest">${ic('bell')}Erinnerung testen</button>
       <div class="hint">Gilt für Zur Arbeit und Nach Hause, je nach eingetragener Ankunftszeit. Die Erinnerung kommt vor dem Start der Fahrt, nicht erst vor der Ankunft. Sie funktioniert, solange die App geöffnet oder im Hintergrund aktiv ist; eine komplett beendete App kann sich ohne Server nicht selbst melden.</div>`;
     const auto = `
@@ -1154,6 +1362,20 @@ button:disabled { opacity: .45; cursor: default; }
     });
     on('remMin', 'change', e => { const m = +e.target.value; cfg.remind.dep = m > 0; if (m > 0) { cfg.remind.depMin = m; askNotify(); } saveCfg(); changed = true; });
     on('remWho', 'change', e => { cfg.remind.who = e.target.value; saveCfg(); for (const k in remData) delete remData[k]; });
+    on('perDay', 'change', e => {
+      cfg.perDay = e.target.checked;
+      if (cfg.perDay && !Object.keys(cfg.days || {}).length) {                 // beim ersten Einschalten die bisherigen Zeiten übernehmen
+        cfg.days = {}; cfg.workdays.forEach(n => { cfg.days[n] = { out: cfg.arrive.out, back: cfg.arrive.back }; });
+        $('dayGrid').querySelectorAll('input').forEach(i => { i.value = ((cfg.days[i.dataset.dw] || {})[i.dataset.w]) || ''; });
+      }
+      $('defTimes').hidden = cfg.perDay; $('dayGrid').hidden = !cfg.perDay;
+      saveCfg(); changed = true;
+    });
+    $('dayGrid').querySelectorAll('input').forEach(i => i.addEventListener('change', () => {
+      const n = i.dataset.dw; cfg.days = cfg.days || {}; cfg.days[n] = { ...(cfg.days[n] || {}), [i.dataset.w]: i.value };
+      saveCfg(); changed = true;
+    }));
+    on('notifyDisr', 'change', e => { cfg.notifyDisr = e.target.checked; saveCfg(); if (cfg.notifyDisr) askNotify(); });
     on('remTest', 'click', async () => { await askNotify(); showAlert('Erinnerung', 'So meldet sich Pendel kurz vor dem Losgehen.'); });
     on('cons', 'change', e => { const v = parseFloat(e.target.value.replace(',', '.')); if (v > 0 && v < 40) { cfg.cons = v; saveCfg(); renderCompareAndCar(); } });
     $('fuelSeg').querySelectorAll('button').forEach(b => b.onclick = () => {
