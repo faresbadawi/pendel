@@ -196,7 +196,11 @@ footer .icon-btn .ic { width: 16px; height: 16px; }
 dialog { width: min(100vw - 16px, 520px); max-height: calc(100dvh - 16px); margin: auto; padding: 0; border: 1px solid var(--glass-border); border-radius: 24px; color: var(--text); background: linear-gradient(170deg, var(--bg2), var(--bg3)); overflow: auto; }
 dialog::backdrop { background: rgba(0,0,0,.55); }
 .sheet { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
-.sheet h2 { font-size: 22px; display: flex; align-items: center; gap: 8px; }
+.sheet h2 { font-size: 22px; display: flex; align-items: center; gap: 8px; position: sticky; top: -16px; z-index: 3; margin: -16px -16px 0; padding: 14px 16px 10px; background: var(--bg2); }
+.circ { margin-left: auto; width: 40px; height: 40px; min-height: 40px; border-radius: 50%; padding: 0; display: grid; place-items: center; background: var(--glass-strong); border: 1px solid var(--glass-border); color: var(--text); flex: none; transition: transform .15s, background .2s; }
+.circ:active { transform: scale(.92); }
+.circ.ok { background: var(--ok); border-color: transparent; color: #fff; }
+.circ .ic { width: 20px; height: 20px; vertical-align: 0; }
 .grp { border: 1px solid var(--glass-border); border-radius: 18px; background: var(--glass); }
 .grp { transition: background .25s; }
 .grp.open { background: var(--glass-strong); }
@@ -283,6 +287,7 @@ button:disabled { opacity: .45; cursor: default; }
       <div class="date" id="date"></div>
     </div>
     <div class="tools">
+      <button class="icon-btn" id="refresh" aria-label="Aktualisieren"></button>
       <button class="icon-btn" id="infoBtn" aria-label="Störungen"></button>
       <button class="icon-btn" id="statBtn" aria-label="Wochenübersicht"></button>
       <button class="icon-btn" id="gear" aria-label="Einstellungen"></button>
@@ -306,7 +311,7 @@ button:disabled { opacity: .45; cursor: default; }
     <section class="card fuel" id="fuel"></section>
   </div>
 
-  <footer><span id="stand">Stand: –</span><button class="icon-btn" id="refresh" aria-label="Aktualisieren"></button></footer>
+  <footer><span id="stand">Stand: –</span></footer>
   <div class="cmp" id="cmp" hidden></div>
 </main>
 
@@ -364,6 +369,7 @@ button:disabled { opacity: .45; cursor: default; }
     snow: '<path d="M4 14.9A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.24"/><path d="M8 15h.01"/><path d="M8 19h.01"/><path d="M12 17h.01"/><path d="M12 21h.01"/><path d="M16 15h.01"/><path d="M16 19h.01"/>',
     storm: '<path d="M6 16.33A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 .5 8.97"/><path d="m13 12-3 5h4l-3 5"/>',
     chart: '<path d="M3 3v18h18"/><path d="M7 16v-4"/><path d="M12 16V8"/><path d="M17 16v-7"/>',
+    x: '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
     drop: '<path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/>',
     euro: '<path d="M4 10h12"/><path d="M4 14h9"/><path d="M19 6a7.7 7.7 0 0 0-5.2-2A7.9 7.9 0 0 0 6 12c0 4.4 3.5 8 7.8 8 2 0 3.8-.8 5.2-2"/>',
   };
@@ -1020,11 +1026,10 @@ button:disabled { opacity: .45; cursor: default; }
     const roadHtml = inc.err ? item('', 'alert', 'Autobahn-Meldungen nicht erreichbar', inc.err)
       : road.length ? road.map(x => item(x.blocked ? 'bad' : x.delay >= 10 ? 'warn' : '', x.blocked ? 'ban' : 'car', x.title, [x.sub, x.delay ? `${x.delay} min Verzögerung` : ''].filter(Boolean).join(' · '), x.lines.length ? `<small>${x.lines.map(esc).join('<br>')}</small>` : '')).join('')
       : item('', 'check', 'Keine Störungen auf der Strecke', inc.roads.length ? `Geprüft: ${inc.roads.join(', ')}` : 'Auf deiner Strecke liegt keine Autobahn.');
-    $('infoSheet').innerHTML = `<h2>${ic('info')}Störungen</h2>
+    $('infoSheet').innerHTML = `<h2>${ic('info')}Störungen<button type="button" class="circ" id="infoClose" aria-label="Schließen">${ic('x')}</button></h2>
       <div class="sec">Bahn${e ? ' · ' + esc(clean((e.sa || {}).name || '')) : ''}</div><div class="stack">${railHtml}</div>
       <div class="sec">Autobahn${e ? ' · ' + esc(ends().a.label.split(',')[0]) + ' → ' + esc(ends().b.label.split(',')[0]) : ''}</div><div class="stack">${roadHtml}</div>
-      <div class="hint">Quellen: DB-Echtzeitdaten, Autobahn GmbH (Verkehrsmeldungen). Die Zahl am Symbol zeigt, wie viele Meldungen auf deiner aktuellen Strecke gerade vorliegen.</div>
-      <button class="btn" id="infoClose">${ic('check')}Schließen</button>`;
+      <div class="hint">Quellen: DB-Echtzeitdaten, Autobahn GmbH (Verkehrsmeldungen). Die Zahl am Symbol zeigt, wie viele Meldungen auf deiner aktuellen Strecke gerade vorliegen.</div>`;
     $('infoClose').onclick = () => $('info').close();
     if (!$('info').open) $('info').showModal();
   }
@@ -1044,7 +1049,7 @@ button:disabled { opacity: .45; cursor: default; }
     const wk = Math.ceil((((mon - new Date(mon.getFullYear(), 0, 1)) / 864e5) + new Date(mon.getFullYear(), 0, 1).getDay() + 1) / 7);
     const dm = new Intl.DateTimeFormat('de-DE', { day: 'numeric', month: 'short' }), wd = new Intl.DateTimeFormat('de-DE', { weekday: 'short' });
     const money = x => trip ? eur(x) : '–';
-    $('statSheet').innerHTML = `<h2>${ic('chart')}Wochenübersicht</h2>
+    $('statSheet').innerHTML = `<h2>${ic('chart')}Wochenübersicht<button type="button" class="circ" id="statClose" aria-label="Schließen">${ic('x')}</button></h2>
       <div class="wk"><button id="wkPrev" aria-label="Vorherige Woche">‹</button><span>${weekOff === 0 ? 'Diese Woche' : 'Woche'} · ${dm.format(days[0])} – ${dm.format(days[6])}</span><button id="wkNext" aria-label="Nächste Woche" ${weekOff >= 0 ? 'disabled' : ''}>›</button></div>
       <div class="tiles">
         <div><b>${tr}</b><span>Tage mit dem Zug</span></div>
@@ -1056,8 +1061,7 @@ button:disabled { opacity: .45; cursor: default; }
       <div class="stack">${days.map(d => { const k = dayKey(d), v = log[k], fut = k > today; return `
         <div class="dayrow ${k === today ? 'today' : ''}"><div class="dn">${wd.format(d)}<small>${dm.format(d)}</small></div>
           <div class="seg small" data-k="${k}">${[['train', 'Zug'], ['car', 'Auto'], ['', '–']].map(([m, l]) => `<button data-v="${m}" aria-pressed="${(v || '') === m}" ${fut ? 'disabled' : ''}>${l}</button>`).join('')}</div></div>`; }).join('')}</div>
-      <div class="hint">${trip ? `Schätzung mit Hin- und Rückfahrt (${num1(stat.km * 2)} km), ${num1(cons)} l/100 km und dem zuletzt bekannten günstigsten Preis (${stat.price.toFixed(3).replace('.', ',')} €/l).` : 'Für die Kosten braucht die App einmal die Auto-Ansicht mit geladenen Spritpreisen (Tankerkönig-Schlüssel) und den Verbrauch in den Einstellungen.'} Alles bleibt nur auf diesem Gerät.</div>
-      <button class="btn" id="statClose">${ic('check')}Schließen</button>`;
+      <div class="hint">${trip ? `Schätzung mit Hin- und Rückfahrt (${num1(stat.km * 2)} km), ${num1(cons)} l/100 km und dem zuletzt bekannten günstigsten Preis (${stat.price.toFixed(3).replace('.', ',')} €/l).` : 'Für die Kosten braucht die App einmal die Auto-Ansicht mit geladenen Spritpreisen (Tankerkönig-Schlüssel) und den Verbrauch in den Einstellungen.'} Alles bleibt nur auf diesem Gerät.</div>`;
     $('statSheet').querySelectorAll('.dayrow .seg').forEach(g => g.querySelectorAll('button').forEach(b => b.onclick = () => {
       const l = loadLog(); if (b.dataset.v) l[g.dataset.k] = b.dataset.v; else delete l[g.dataset.k]; saveLog(l); renderStats();
     }));
@@ -1333,13 +1337,12 @@ button:disabled { opacity: .45; cursor: default; }
       </div>
       <div class="hint">Daten: DB Echtzeit (IRIS) und Transitous für die Bahn, OSRM bzw. TomTom für das Auto, Tankerkönig (MTS-K) für Spritpreise, Open-Meteo für das Wetter.</div>
       <div class="credit">Entwickelt von Fares Badawi 2026<br>mit Hilfe von Claude Code</div>`;
-    $('sheet').innerHTML = `<h2>${ic('sliders')}Einstellungen</h2>
+    $('sheet').innerHTML = `<h2>${ic('sliders')}Einstellungen<button type="button" class="circ ok" id="closeDlg" aria-label="Fertig">${ic('check')}</button></h2>
       ${grp('places', 'pin', 'Orte & Bahnhöfe', places)}
       ${grp('times', 'clock', 'Zeiten & Erinnerung', times)}
       ${grp('auto', 'fuel', 'Auto & Sprit', auto)}
       ${grp('look', 'palette', 'Darstellung', look)}
-      ${grp('about', 'info', 'Info & Installation', about)}
-      <button class="btn" id="closeDlg">${ic('check')}Fertig</button>`;
+      ${grp('about', 'info', 'Info & Installation', about)}`;
     $('sheet').querySelectorAll('.gh').forEach(h => h.onclick = () => {            // Ziehharmonika: eine Gruppe offen
       const g = h.parentElement, was = g.classList.contains('open');
       $('sheet').querySelectorAll('.grp').forEach(x => { x.classList.remove('open'); x.firstElementChild.setAttribute('aria-expanded', 'false'); });
