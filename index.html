@@ -95,7 +95,6 @@ a { color: inherit; }
 .seg button { flex: 1; border-radius: 13px; background: transparent; font-weight: 700; min-height: 42px; transition: background .2s, color .2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
 .seg button[aria-pressed="true"] { background: #fff; color: #17407f; }
 .seg.small button { min-height: 38px; font-size: 14px; font-weight: 600; }
-#ptr { text-align: center; color: var(--muted); font-size: 13px; height: 0; overflow: hidden; transition: height .15s; }
 
 /* Zug */
 .badge { position: absolute; top: 1px; right: 0; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 99px; background: var(--bad); color: #fff; font-size: 10px; font-weight: 800; line-height: 17px; text-align: center; box-shadow: 0 0 0 2px rgba(0,0,0,.25); }
@@ -257,7 +256,7 @@ button:disabled { opacity: .45; cursor: default; }
 @media (min-width: 760px) {
   body { padding: max(24px, env(safe-area-inset-top)) max(32px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(32px, env(safe-area-inset-left)); }
   main { max-width: 1120px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-content: start; align-items: start; min-height: calc(100dvh - 44px); }
-  main > .hd, main > #alert, main > #ptr, main > footer, main > .cmp { grid-column: 1 / -1; }
+  main > .hd, main > #alert, main > footer, main > .cmp { grid-column: 1 / -1; }
   main > #wx { grid-column: 1 / -1; }
   main > #dirSeg { grid-column: 1 / -1; justify-self: start; width: min(100%, 420px); }
   .clock { font-size: clamp(60px, 7vw, 88px); }
@@ -299,7 +298,6 @@ button:disabled { opacity: .45; cursor: default; }
   </div>
     <section class="card banner" id="alert" hidden></section>
   <div class="seg small" id="dirSeg" role="group" aria-label="Richtung"></div>
-  <div id="ptr">Loslassen zum Aktualisieren …</div>
 
   <div class="pane" id="paneTrain">
     <section class="card hero" id="hero"><div class="skel">Lade Verbindungen …</div></section>
@@ -1482,21 +1480,6 @@ button:disabled { opacity: .45; cursor: default; }
   const applyChanges = () => { if (changed) { changed = false; reset(); setMode(mode); } };
   $('dlg').addEventListener('close', applyChanges);
   $('gear').onclick = () => openSettings();                         // alle Gruppen zugeklappt
-
-  /* ---------- Pull-to-Refresh ---------- */
-  let y0 = null;
-  addEventListener('touchstart', e => { y0 = scrollY <= 0 && !$('dlg').open ? e.touches[0].clientY : null; }, { passive: true });
-  addEventListener('touchmove', e => {
-    if (y0 == null) return;
-    const d = e.touches[0].clientY - y0;
-    $('ptr').style.height = d > 20 ? Math.min(d / 3, 40) + 'px' : '0';
-  }, { passive: true });
-  addEventListener('touchend', e => {
-    if (y0 == null) return;
-    const d = e.changedTouches[0].clientY - y0;
-    $('ptr').style.height = '0'; y0 = null;
-    if (d > 110) refresh(true);
-  });
 
   /* ---------- Start ---------- */
   applyTheme();
